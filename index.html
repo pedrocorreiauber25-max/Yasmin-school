@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#f7dff0">
+<link rel="manifest" href="./manifest.json"><link rel="icon" href="./icon.svg" type="image/svg+xml"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Yasmin School">
 <title>Yasmin School</title>
 <style>
 :root{--pink:#f4b9d8;--pink2:#fff0f7;--lav:#d9cdfa;--lav2:#f3efff;--ink:#40354c;--muted:#81758d;--white:#fff;--good:#3c9b78;--bad:#d96d83;--gold:#d6a84e;--shadow:0 12px 32px #6b477015}
@@ -83,5 +84,6 @@ function changePin(){let v=document.getElementById("newPin").value;if(v.length<4
 function exportData(){let blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="yasmin-school-progresso.json";a.click();URL.revokeObjectURL(a.href)}
 function importData(e){let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let x=JSON.parse(r.result);if(!Array.isArray(x.completed)||!Array.isArray(x.attempts))throw 0;data=x;save();renderParents();alert("Progresso importado com sucesso.")}catch{alert("Não foi possível importar este ficheiro.")}};r.readAsText(f)}
 function resetData(){if(confirm("Queres mesmo apagar o progresso guardado neste computador? Exporta primeiro uma cópia de segurança.")){localStorage.removeItem(KEY);data={index:0,completed:[],attempts:[],answers:[],storyDone:[],pin:"2468",last:"Ainda não há conquistas.",session:null};save();renderParents();renderHome()}}
+if("serviceWorker" in navigator && location.protocol!=="file:"){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(err=>console.warn("Offline indisponível:",err)))}
 renderHome();
 </script></body></html>
