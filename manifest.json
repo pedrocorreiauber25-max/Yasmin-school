@@ -1,0 +1,19 @@
+{
+  "name": "Yasmin School",
+  "short_name": "Yasmin School",
+  "description": "Aprender, descobrir e crescer — percurso escolar do 4.º ano.",
+  "lang": "pt-PT",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fff7fb",
+  "theme_color": "#f4b9d8",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
