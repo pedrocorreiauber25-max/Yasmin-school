@@ -889,13 +889,52 @@ const yasminStartLessonForDiagnostics=startLesson;
 startLesson=function(){try{return yasminStartLessonForDiagnostics()}catch(error){yasminShowRuntimeError("Abertura da aula",error);throw error}};
 
 
-/* Biblioteca livre: as histórias não dependem da etapa da missão diária */
-readStory=oldReadStory;
-const yasminRenderHomeBeforeFreeStories=renderHome;
+/* Biblioteca livre definitiva · navegação e leitor independentes da missão diária */
+page = function(p){
+ if(p==="weeklyTest") ensureWeeklySection();
+ pageBase(p);
+ if(p==="weeklyTest") renderWeeklyTest();
+};
+readStory = function(i){
+ const st=stories[Number(i)];
+ if(!st){alert("Não foi possível encontrar esta história. Volta à biblioteca e escolhe outra.");return}
+ const el=document.getElementById("storyReader"),cards=document.getElementById("storyCards");
+ if(!el||!cards){alert("A biblioteca ainda está a carregar. Tenta novamente.");return}
+ cards.classList.add("hidden");el.classList.remove("hidden");
+ let n=0,score=0,answers=[];
+ el.innerHTML="<div class='card'><button type='button' onclick='renderStories()'>← Voltar à biblioteca</button><h2>"+st.emoji+" "+st.title+"</h2><div class='pill'>Leitura livre · "+st.questions.length+" perguntas</div><div class='storytext'>"+st.text+"</div><h3>Compreensão e interpretação</h3><div id='storyQuiz'></div></div>";
+ function ask(){
+  const target=document.getElementById("storyQuiz");if(!target)return;
+  if(n>=st.questions.length){
+   const pct=Math.round(score/st.questions.length*100);
+   data.storyHistory=data.storyHistory||[];
+   data.storyDone=data.storyDone||[];
+   data.storyHistory.push({date:new Date().toLocaleDateString("pt-PT"),timestamp:Date.now(),index:Number(i),title:st.title,score:pct,correct:score,total:st.questions.length,answers});
+   if(!data.storyDone.includes(Number(i)))data.storyDone.push(Number(i));
+   data.last="Leitura concluída: "+st.title+" · "+pct+"% de compreensão 📚";
+   save();
+   target.innerHTML="<h2>"+pct+"% de compreensão 🌟</h2><p>"+score+" respostas certas em "+st.questions.length+".</p><p>Excelente leitura! Podes voltar a esta história ou escolher outra.</p><button class='primary' onclick='renderStories()'>Voltar à biblioteca</button>";
+   return;
+  }
+  const q=st.questions[n];
+  target.innerHTML="<p class='muted'>Pergunta "+(n+1)+" de "+st.questions.length+"</p><div class='progress'><span style='width:"+(n/st.questions.length*100)+"%'></span></div><div class='question'>"+q[0]+"</div><div class='answers'>"+q[1].map((a,j)=>"<button class='answer' onclick='storyAnswer("+j+")'>"+String.fromCharCode(65+j)+". "+a+"</button>").join("")+"</div>";
+ }
+ window.storyAnswer=function(j){
+  const q=st.questions[n],ok=Number(j)===q[2];
+  if(ok){score++;if(typeof clearSmartReview==="function")clearSmartReview("Leitura",st.title+" · "+q[0])}
+  else if(typeof addSmartReview==="function")addSmartReview("Leitura",st.title,q[0],q[1],q[2],q[1][j],q[3]);
+  answers.push({question:q[0],given:q[1][j],correct:q[1][q[2]],isCorrect:ok,explanation:q[3]});
+  const target=document.getElementById("storyQuiz");if(!target)return;
+  target.innerHTML="<div class='feedback "+(ok?"good":"bad")+"'>"+(ok?"Muito bem! 🌟":"A resposta correta é: "+q[1][q[2]]+".")+"<br>"+q[3]+"</div><button class='primary' onclick='storyNext()'>Continuar →</button>";
+ };
+ window.storyNext=function(){n++;ask()};
+ ask();
+};
+const yasminRenderHomeFinal=renderHome;
 renderHome=function(){
- yasminRenderHomeBeforeFreeStories();
- const storiesNav=document.querySelector("[data-page='stories']");
- if(storiesNav){storiesNav.disabled=false;storiesNav.removeAttribute("disabled");storiesNav.title="Abrir a biblioteca livre de histórias"}
+ yasminRenderHomeFinal();
+ const nav=document.querySelector("[data-page='stories']");
+ if(nav){nav.disabled=false;nav.removeAttribute("disabled");nav.title="Abrir a biblioteca livre de histórias"}
 };
 
 renderHome();
