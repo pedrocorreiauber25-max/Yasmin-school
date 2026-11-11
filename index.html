@@ -872,5 +872,21 @@ renderHome = function(){yasminRenderHomeBeforeFifth();renderFifthPrepHomeCard()}
 const yasminRenderParentsBeforeFifth=renderParents;
 renderParents = function(){yasminRenderParentsBeforeFifth();const p=document.getElementById("parentPanel");if(!p)return;const h=(data.fifthPrepHistory||[]).slice().reverse(),box=document.createElement("div");box.className="section card";box.innerHTML="<h3>🚀 Preparação para o 5.º ano</h3><p class='muted'>Diagnósticos de treino — não são notas oficiais.</p>"+(h.length?h.map(x=>"<div class='feedback good'><b>"+x.date+" · "+x.score+"%</b><br>"+["Português","Matemática","Estudo do Meio","Inglês"].map(subject=>{const a=(x.answers||[]).filter(y=>y.subject===subject);return subject+": "+(a.length?a.filter(y=>y.correct).length+"/"+a.length+" certas":"sem dados")}).join(" · ")+"</div>").join(""):"<p>Ainda não existem diagnósticos de preparação para o 5.º ano.</p>");p.appendChild(box)};
 
+
+/* Diagnóstico de erros · preserva todos os dados */
+function yasminShowRuntimeError(where,error){
+ const home=document.getElementById("home");
+ let box=document.getElementById("yasminRuntimeError");
+ if(!box){box=document.createElement("div");box.id="yasminRuntimeError";box.className="section card";box.style.border="2px solid #c95f77";if(home)home.insertBefore(box,home.firstChild);else document.querySelector("main")?.prepend(box)}
+ const message=String(error&&error.message||error||"Erro desconhecido");
+ box.innerHTML="<h3>⚠️ A escola encontrou um erro</h3><p><b>Etapa:</b> "+String(where).replace(/[&<>]/g," ")+"</p><p><b>Detalhe:</b> "+message.replace(/[&<>]/g," ")+"</p><p class='muted'>O teu progresso continua guardado neste computador. Não apagues os dados. Envia uma fotografia desta mensagem aos teus pais.</p>";
+}
+window.addEventListener("error",function(event){yasminShowRuntimeError("Carregamento da aplicação",event.error||event.message)});
+window.addEventListener("unhandledrejection",function(event){yasminShowRuntimeError("Operação da aplicação",event.reason)});
+const yasminRenderHomeForDiagnostics=renderHome;
+renderHome=function(){try{return yasminRenderHomeForDiagnostics()}catch(error){yasminShowRuntimeError("Preparação da página inicial",error);throw error}};
+const yasminStartLessonForDiagnostics=startLesson;
+startLesson=function(){try{return yasminStartLessonForDiagnostics()}catch(error){yasminShowRuntimeError("Abertura da aula",error);throw error}};
+
 renderHome();
 </script></body></html>
