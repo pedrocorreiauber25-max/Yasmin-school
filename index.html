@@ -23,7 +23,7 @@ footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
 </style></head>
 <body>
 <header><div class="brand"><div class="logo">🌸</div><div><h1>Yasmin School</h1><div class="tag">Aprender, descobrir e crescer</div></div></div>
-<nav><button class="navbtn active" data-page="home">🏡 Início</button><button class="navbtn" data-page="stories">📚 Histórias</button><button class="navbtn" data-page="parents">🔐 Área dos pais</button></nav></header>
+<nav><button class="navbtn active" data-page="home">🏡 Início</button><button class="navbtn" data-page="stories">📚 Histórias</button><button class="navbtn" data-page="weeklyTest">📝 Teste semanal</button><button class="navbtn" data-page="parents">🔐 Área dos pais</button></nav></header>
 <main>
 <section id="home">
 <div class="hero"><div><div class="eyebrow">4.º ano · Caminho para o 5.º ano</div><h2>Olá, Yasmin! ✨</h2><p>Estás pronta para aprender? A tua escola escolhe uma aula por dia. Fazes tudo aqui no computador: explicações, exercícios, textos e testes. Cada passo conta!</p><div id="todayline" class="pill">A preparar a tua aula…</div><div class="actions"><button class="primary" onclick="startLesson()">Começar a minha aula →</button></div></div><div class="hero-art">🎒📖🌈</div></div>
@@ -277,7 +277,7 @@ function renderHome(){oldRenderHome();const m=dailyMission(),c=curriculum[m.less
 const oldReadStory=readStory;
 function readStory(i){const m=dailyMission(),daily=dailyStoryState();if(m.stage!=="story"||m.storyCompleted){alert("Esta leitura só está disponível na etapa da história do dia.");return}if(i!==daily.index){alert("Esta história está bloqueada. Hoje só podes ler o texto do dia.");return}daily.opened=true;save();const s=stories[i],el=document.getElementById("storyReader");document.getElementById("storyCards").classList.add("hidden");el.classList.remove("hidden");let n=0,score=0,answers=[];el.innerHTML="<div class='card'><h2>"+s.emoji+" "+s.title+"</h2><div class='pill'>📖 História única de hoje · "+s.questions.length+" perguntas</div><div class='storytext'>"+s.text+"</div><h3>Vamos compreender a história</h3><div id='storyQuiz'></div></div>";function ask(){if(n>=s.questions.length){const pct=Math.round(score/s.questions.length*100);if(!data.storyDone.includes(i))data.storyDone.push(i);daily.completed=true;data.storyHistory=data.storyHistory||[];if(!data.storyHistory.some(x=>x.date===daily.date&&x.index===i))data.storyHistory.push({date:daily.date,index:i,title:s.title,score:pct,correct:score,total:s.questions.length,answers});m.storyCompleted=true;m.completedStages.push("story");m.stage="challenge";data.last="História concluída: "+s.title+" · "+pct+"% de compreensão 📚";save();document.getElementById("storyQuiz").innerHTML="<h2>"+pct+"% de compreensão 🌟</h2><p>"+score+" respostas certas em "+s.questions.length+".</p><p>Terminaste a leitura do dia. A seguir tens um desafio especial!</p><button class='primary' onclick='startLesson()'>Começar o desafio especial →</button>";return}const q=s.questions[n];document.getElementById("storyQuiz").innerHTML="<p class='muted'>Pergunta "+(n+1)+" de "+s.questions.length+"</p><div class='progress'><span style='width:"+(n/s.questions.length*100)+"%'></span></div><div class='question'>"+q[0]+"</div><div class='answers'>"+q[1].map((a,j)=>"<button class='answer' onclick='storyAnswer("+j+")'>"+a+"</button>").join("")+"</div>"}window.storyAnswer=function(j){const q=s.questions[n],ok=j===q[2];if(ok)score++;answers.push({question:q[0],given:q[1][j],correct:q[1][q[2]],isCorrect:ok,explanation:q[3]});document.getElementById("storyQuiz").innerHTML="<div class='feedback "+(ok?"good":"bad")+"'>"+(ok?"Muito bem!":"A resposta certa é: "+q[1][q[2]]+".")+"<br>"+q[3]+"</div><button class='primary' onclick='storyNext()'>Continuar →</button>"};window.storyNext=function(){n++;ask()};ask()}
 const oldRenderParents=renderParentsBase;
-function renderParents(){oldRenderParents();const p=document.getElementById("parentPanel"),history=data.dailyMissionHistory||[],box=document.createElement("div");box.className="section card";box.innerHTML="<h3>🎓 Missões diárias — acompanhamento dos pais</h3><p class='muted'>Cada missão reúne aquecimento, aula, história, desafio e exame final.</p>"+(history.length?"<div class='tablewrap'><table><thead><tr><th>Data</th><th>Disciplina</th><th>Matéria</th><th>Exame</th><th>Tempo</th></tr></thead><tbody>"+history.slice().reverse().map(x=>"<tr><td>"+x.date+"</td><td>"+x.subject+"</td><td>"+x.title+"</td><td><b>"+x.score+"%</b></td><td>"+x.elapsedMinutes+" min</td></tr>").join("")+"</tbody></table></div>":"<p>Ainda não há missões completas nesta versão. Os resultados aparecerão aqui quando a Yasmin terminar o exame final.</p>");p.appendChild(box);const detail=document.createElement("div");detail.className="section card";const all=(data.dailyMissionHistory||[]).slice().reverse();const storiesDone=(data.storyHistory||[]).slice().reverse();detail.innerHTML="<h3>🧠 Detalhe das etapas e das histórias</h3>"+(all.length?all.map(m=>"<div class='feedback good'><b>"+m.date+" · "+m.subject+" · "+m.title+"</b><br>Exame final: "+m.score+"% · Tempo: "+m.elapsedMinutes+" min"+(m.quizResults||[]).map(q=>"<p><b>"+q.stage+"</b>: "+q.score+"% ("+q.correct+"/"+q.total+")"+(q.wrong&&q.wrong.length?"<br>Para rever: "+q.wrong.map(w=>w.question+" → resposta certa: "+w.answer).join(" | "):"")+"</p>").join("")+"</div>").join(""):"<p>Ainda não há detalhes de missões concluídas.</p>")+"<h4>📚 Compreensão das histórias</h4>"+(storiesDone.length?storiesDone.map(s=>"<div class='feedback good'><b>"+s.date+" · "+s.title+" · "+s.score+"%</b><br>"+(s.answers||[]).map(a=>(a.isCorrect?"✓ ":"✗ ")+a.question+" — resposta: "+a.given+"; correta: "+a.correct).join("<br>")+"</div>").join(""):"<p>Ainda não há histórias registadas.</p>");p.appendChild(detail);}
+function renderParents(){oldRenderParents();const p=document.getElementById("parentPanel"),history=data.dailyMissionHistory||[],box=document.createElement("div");box.className="section card";box.innerHTML="<h3>🎓 Missões diárias — acompanhamento dos pais</h3><p class='muted'>Cada missão reúne aquecimento, aula, história, desafio e exame final.</p>"+(history.length?"<div class='tablewrap'><table><thead><tr><th>Data</th><th>Disciplina</th><th>Matéria</th><th>Exame</th><th>Tempo</th></tr></thead><tbody>"+history.slice().reverse().map(x=>"<tr><td>"+x.date+"</td><td>"+x.subject+"</td><td>"+x.title+"</td><td><b>"+x.score+"%</b></td><td>"+x.elapsedMinutes+" min</td></tr>").join("")+"</tbody></table></div>":"<p>Ainda não há missões completas nesta versão. Os resultados aparecerão aqui quando a Yasmin terminar o exame final.</p>");p.appendChild(box);const detail=document.createElement("div");detail.className="section card";const all=(data.dailyMissionHistory||[]).slice().reverse();const storiesDone=(data.storyHistory||[]).slice().reverse();detail.innerHTML="<h3>🧠 Detalhe das etapas e das histórias</h3>"+(all.length?all.map(m=>"<div class='feedback good'><b>"+m.date+" · "+m.subject+" · "+m.title+"</b><br>Exame final: "+m.score+"% · Tempo: "+m.elapsedMinutes+" min"+(m.quizResults||[]).map(q=>"<p><b>"+q.stage+"</b>: "+q.score+"% ("+q.correct+"/"+q.total+")"+(q.wrong&&q.wrong.length?"<br>Para rever: "+q.wrong.map(w=>w.question+" → resposta certa: "+w.answer).join(" | "):"")+"</p>").join("")+"</div>").join(""):"<p>Ainda não há detalhes de missões concluídas.</p>")+"<h4>📚 Compreensão das histórias</h4>"+(storiesDone.length?storiesDone.map(s=>"<div class='feedback good'><b>"+s.date+" · "+s.title+" · "+s.score+"%</b><br>"+(s.answers||[]).map(a=>(a.isCorrect?"✓ ":"✗ ")+a.question+" — resposta: "+a.given+"; correta: "+a.correct).join("<br>")+"</div>").join(""):"<p>Ainda não há histórias registadas.</p>");p.appendChild(detail);const weeklyBox=document.createElement("div");weeklyBox.className="section card";const weekly=(data.weeklyTestHistory||[]).slice().reverse();weeklyBox.innerHTML="<h3>📝 Testes semanais — todas as disciplinas</h3>"+(weekly.length?weekly.map(w=>"<div class='feedback good'><b>"+w.date+" · "+w.score+"%</b><br>"+w.correct+" certas em "+w.total+" perguntas<br>"+(w.answers||[]).map((a,i)=>(a.correct?"✓ ":"✗ ")+a.subject+" — "+a.question+"<br>Resposta: "+a.given+" · Correta: "+a.answer).join("<br>")+"</div>").join(""):"<p>Ainda não foi realizado nenhum teste semanal.</p>");p.appendChild(weeklyBox);}
 
 
 stories.push({"title":"O relógio que se atrasava","emoji":"🕰️","text":"Na praça da vila havia um relógio grande, preso à torre da biblioteca. Todos gostavam de olhar para ele para saber as horas.\\n\\nNuma segunda-feira, a Inês reparou que o relógio marcava dez horas, mas o relógio da sala da escola já marcava dez e cinco. Pensou que talvez tivesse lido mal. No dia seguinte, voltou a comparar as horas. A diferença era a mesma.\\n\\nA Inês contou o que tinha observado ao amigo Martim. Em vez de adivinharem, decidiram registar a hora dos dois relógios durante três dias. As notas mostraram que o relógio da praça se atrasava sempre cinco minutos.\\n\\nA bibliotecária chamou o senhor Artur, um relojoeiro reformado que vivia perto da praça. Ele examinou o mecanismo com cuidado e descobriu que uma pequena peça estava solta. Explicou que os relógios precisam de manutenção para continuarem a funcionar corretamente.\\n\\nDepois de apertar a peça e acertar os ponteiros, o relógio voltou a marcar a hora certa. A Inês e o Martim ficaram satisfeitos. Tinham descoberto o problema porque observaram, compararam e registaram os factos, em vez de tirarem conclusões à pressa.","questions":[["Onde estava o relógio da história?",["Na torre da biblioteca","Na sala da escola","Dentro da casa da Inês"],0,"O relógio grande estava preso à torre da biblioteca."],["O que reparou a Inês na segunda-feira?",["O relógio tinha parado","O relógio da praça estava cinco minutos atrasado","O relógio estava adiantado uma hora"],1,"A praça marcava dez horas quando o relógio da escola já marcava dez e cinco."],["Durante quantos dias os amigos registaram as horas?",["Um dia","Dois dias","Três dias"],2,"A Inês e o Martim registaram as horas durante três dias."],["Quem examinou o mecanismo do relógio?",["A professora","O senhor Artur","O Martim"],1,"A bibliotecária chamou o senhor Artur, um relojoeiro reformado."],["Qual era o problema do relógio?",["Uma pequena peça estava solta","Faltavam os ponteiros","A torre estava demasiado alta"],0,"O senhor Artur descobriu que uma pequena peça estava solta."],["Porque foi útil registar as horas durante vários dias?",["Para decorar os números","Para confirmar que a diferença se repetia","Para fazer o relógio andar mais depressa"],1,"As observações repetidas mostraram que o atraso era sempre de cinco minutos."],["No texto, dizer que o relógio «se atrasava» significa que…",["mostrava uma hora anterior à hora certa","tocava muito alto","mudava de lugar"],0,"Um relógio atrasado indica uma hora anterior à hora correta."],["Qual é a principal aprendizagem da história?",["Devemos adivinhar rapidamente","Observar e registar ajuda a descobrir problemas","Os relógios não precisam de manutenção"],1,"A Inês e o Martim resolveram o mistério com observação, comparação e registo."]]});
@@ -320,5 +320,198 @@ function lessonQuestionSet(index,count,variant){
 function currentLessonQuestions(){return data.session.items||curriculum[data.session.index].questions}
 
 if("serviceWorker" in navigator && location.protocol!=="file:"){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}))}
+
+/* YASMIN_UPDATES_2026-11-11_WEEKLY_STORIES_FINAL30 */
+const extraStories=[
+{title:"O jardim das palavras",emoji:"🌷",text:"A turma da Lara recebeu uma tarefa especial: transformar um canto vazio do recreio num jardim de leitura. Cada criança escolheu uma planta e escreveu uma pequena placa com o seu nome. Lara escolheu lavanda, porque gostava do seu cheiro. O Rui trouxe sementes de girassol e a Inês ficou responsável por regar as plantas nos dias mais quentes. No primeiro dia, discutiram sobre onde colocar os vasos. A professora sugeriu que desenhassem um plano e ouvissem todas as ideias. Depois de conversarem, organizaram o espaço junto à parede soalheira. Ao longo das semanas, as plantas cresceram e os alunos passaram a ler ali durante o intervalo. Lara percebeu que um jardim, tal como uma boa história, cresce quando todos cuidam dele.",questions:[
+["Que tarefa recebeu a turma?",["Pintar a sala","Criar um jardim de leitura","Construir um campo"],1,"A turma devia transformar um canto do recreio num jardim de leitura."],
+["Que planta escolheu Lara?",["Lavanda","Girassol","Alecrim"],0,"Lara escolheu lavanda pelo seu cheiro."],
+["Quem trouxe sementes de girassol?",["Rui","Lara","Inês"],0,"O Rui trouxe as sementes de girassol."],
+["Qual era a responsabilidade da Inês?",["Desenhar placas","Regar as plantas","Escolher os livros"],1,"A Inês ficou responsável por regar as plantas."],
+["Porque discutiram no primeiro dia?",["Sobre a localização dos vasos","Sobre a hora de saída","Sobre o nome da escola"],0,"Os alunos tinham opiniões diferentes sobre onde colocar os vasos."],
+["Que solução sugeriu a professora?",["Escolher à sorte","Desenhar um plano e ouvir ideias","Deixar o espaço vazio"],1,"A professora sugeriu um plano e a participação de todos."],
+["Onde organizaram os vasos?",["Junto à parede soalheira","No corredor escuro","Ao lado da cantina"],0,"O espaço escolhido ficava junto à parede com sol."],
+["O que passaram a fazer no jardim?",["Ler durante o intervalo","Jogar à bola","Almoçar"],0,"As crianças começaram a ler ali durante os intervalos."],
+["O que ajudou a turma a resolver o desacordo?",["Conversar e planear","Ignorar os colegas","Desistir do projeto"],0,"O diálogo e o plano permitiram encontrar uma solução comum."],
+["Qual é a mensagem principal?",["Só uma pessoa deve decidir","A colaboração ajuda um projeto a crescer","As plantas não precisam de cuidados"],1,"A história valoriza a cooperação e o cuidado partilhado."]]},
+{title:"A máquina de reciclar",emoji:"♻️",text:"O Miguel encontrou uma caixa grande na arrecadação e imaginou que podia transformá-la numa máquina de reciclar. Pediu ajuda à prima Sara. Juntos, fizeram três aberturas e colocaram etiquetas: papel, plástico e metal. Antes de começar, pesquisaram quais os materiais que pertenciam a cada grupo. Descobriram que uma lata limpa devia ir para o recipiente dos metais e uma folha usada para o papel. No dia seguinte, levaram a máquina para a sala. Os colegas começaram por separar os resíduos, mas alguns enganaram-se. Miguel não ralhou com ninguém: explicou as etiquetas e mostrou exemplos. No fim da semana, a turma tinha separado muitos materiais e decidiu continuar o projeto. A máquina era feita de cartão, mas a ideia ajudava a cuidar do ambiente.",questions:[
+["O que encontrou Miguel?",["Uma caixa grande","Uma bicicleta","Um livro antigo"],0,"Miguel encontrou uma caixa grande na arrecadação."],
+["Quem o ajudou?",["A professora","A prima Sara","O vizinho"],1,"A prima Sara ajudou Miguel a construir a máquina."],
+["Quantas aberturas fizeram?",["Duas","Três","Quatro"],1,"Fizeram três aberturas para separar os materiais."],
+["Que materiais indicavam as etiquetas?",["Vidro, madeira e tecido","Papel, plástico e metal","Água, terra e ar"],1,"As etiquetas eram papel, plástico e metal."],
+["Onde deve ser colocado uma folha usada, segundo a história?",["No grupo do papel","No grupo do metal","No grupo do plástico"],0,"A folha usada pertence ao grupo do papel."],
+["O que fizeram quando alguns colegas se enganaram?",["Riram-se deles","Miguel explicou as etiquetas","Desistiram da máquina"],1,"Miguel explicou com calma e mostrou exemplos."],
+["Durante quanto tempo observaram o resultado?",["Um dia","Uma semana","Um mês"],1,"A turma utilizou a máquina durante a semana."],
+["De que material era feita a máquina?",["Cartão","Metal","Vidro"],0,"A caixa de cartão foi transformada na máquina."],
+["Qual era o objetivo do projeto?",["Decorar a sala","Separar resíduos e cuidar do ambiente","Guardar brinquedos"],1,"A máquina ajudava a separar materiais para reciclagem."],
+["Que qualidade mostrou Miguel ao explicar os erros?",["Paciência","Impaciência","Desinteresse"],0,"Miguel explicou com calma em vez de ralhar com os colegas."]]},
+{title:"A viagem da gota de água",emoji:"💧",text:"A pequena gota Clara vivia numa nuvem sobre uma serra. Um dia, o ar arrefeceu e a gota caiu como chuva sobre uma encosta. Escorreu por um regato até chegar a um rio. Pelo caminho, passou por campos, árvores e uma aldeia onde as pessoas recolhiam água para regar as hortas. O sol aqueceu a superfície do rio e parte da água transformou-se em vapor, subindo no ar. Mais tarde, o vapor arrefeceu e formou pequenas gotinhas que se juntaram numa nova nuvem. Clara compreendeu que a água circula continuamente entre a superfície da Terra e a atmosfera. Também percebeu que, apesar de a água estar sempre em movimento, devemos evitar desperdiçá-la e poluí-la.",questions:[
+["Onde vivia Clara no início?",["Numa nuvem","Num lago","Num poço"],0,"A gota Clara vivia numa nuvem sobre a serra."],
+["Como chegou ao chão?",["Como neve","Como chuva","Como granizo"],1,"Quando o ar arrefeceu, a gota caiu como chuva."],
+["Por onde passou antes de chegar ao rio?",["Por um regato","Por uma estrada","Por um túnel"],0,"A água escorreu por um regato até ao rio."],
+["Para que recolhiam água na aldeia?",["Para regar as hortas","Para pintar casas","Para lavar carros de corrida"],0,"As pessoas recolhiam água para regar as hortas."],
+["O que aqueceu a superfície do rio?",["O vento","O sol","A neve"],1,"O sol aqueceu a água do rio."],
+["Como se chama a transformação da água líquida em vapor?",["Evaporação","Congelação","Solidificação"],0,"A passagem da água líquida a vapor chama-se evaporação."],
+["O que aconteceu ao vapor quando arrefeceu?",["Formou gotinhas","Transformou-se em areia","Desapareceu para sempre"],0,"O vapor arrefeceu e formou pequenas gotinhas."],
+["Como se chama o percurso contínuo da água na natureza?",["Ciclo da água","Ciclo das rochas","Rotação da Terra"],0,"A história descreve o ciclo da água."],
+["O que devemos evitar fazer à água?",["Poupar água","Poluí-la e desperdiçá-la","Usá-la com cuidado"],1,"A água deve ser protegida e não desperdiçada nem poluída."],
+["Qual é a ideia principal do texto?",["A água está sempre em circulação na natureza","A água só existe nos rios","As nuvens são feitas de fumo"],0,"A história explica várias etapas do ciclo da água."]]},
+{title:"O clube dos inventores",emoji:"💡",text:"A escola organizou um clube de inventores para construir objetos úteis com materiais reutilizados. A Amira queria criar um suporte para livros, o Daniel pensou num carrinho e a Francisca imaginou um pequeno moinho de vento. Antes de construir, cada grupo desenhou o projeto e fez uma lista dos materiais necessários. O grupo da Amira percebeu que o primeiro suporte caía para o lado. Em vez de abandonar a ideia, reforçaram a base com cartão dobrado. O carrinho de Daniel precisava de rodas do mesmo tamanho para andar direito. A Francisca testou várias posições das pás até encontrar uma que girava melhor com o vento. No final, os três grupos apresentaram os inventos e explicaram o que tinham alterado depois dos testes. Aprenderam que experimentar e corrigir faz parte de inventar.",questions:[
+["O que criou a escola?",["Um clube de inventores","Uma equipa de futebol","Uma feira de doces"],0,"A escola organizou um clube de inventores."],
+["O que queria construir Amira?",["Um suporte para livros","Um moinho","Um carrinho"],0,"Amira queria criar um suporte para livros."],
+["O que imaginou Francisca?",["Um pequeno moinho de vento","Uma ponte de madeira","Um relógio"],0,"Francisca imaginou um moinho de vento."],
+["O que fizeram antes de construir?",["Desenharam o projeto e listaram materiais","Começaram sem plano","Compraram brinquedos"],0,"Os grupos planearam e prepararam uma lista."],
+["Porque caía o primeiro suporte?",["A base não estava equilibrada","Era demasiado colorido","Tinha rodas"],0,"O suporte caía para o lado e precisou de uma base reforçada."],
+["Como resolveram o problema do suporte?",["Reforçaram a base com cartão dobrado","Retiraram todos os livros","Molharam o cartão"],0,"A base foi reforçada com cartão dobrado."],
+["O que precisava o carrinho?",["Rodas do mesmo tamanho","Uma vela","Uma corda comprida"],0,"As rodas iguais ajudavam o carrinho a andar direito."],
+["O que testou Francisca?",["As posições das pás","A cor das janelas","O peso dos livros"],0,"Francisca experimentou diferentes posições das pás."],
+["O que apresentaram no final?",["Os seus inventos e as alterações feitas","Uma lista de faltas","Uma peça de teatro"],0,"Os grupos mostraram os inventos e explicaram as melhorias."],
+["O que aprenderam os alunos?",["Experimentar e corrigir faz parte de inventar","A primeira tentativa é sempre perfeita","Não devemos testar ideias"],0,"A história mostra que testar e melhorar é parte do processo."]]},
+{title:"O segredo da noite estrelada",emoji:"🌌",text:"Numa noite de céu limpo, o avô levou a Eva ao jardim para observar as estrelas. Levou uma manta, um caderno e um mapa simples do céu. Primeiro, pediu-lhe que deixasse os olhos habituarem-se à escuridão. Depois apontou para a Estrela Polar e explicou que ela parece indicar a direção do Norte. Eva desenhou alguns pontos luminosos e tentou ligá-los como se fossem figuras. O avô explicou que as constelações são grupos aparentes de estrelas vistos da Terra. Também lhe contou que as estrelas estão muito longe e que a luz demora tempo a chegar até nós. Eva fez muitas perguntas, mas o avô não sabia todas as respostas. Prometeu procurar informação na biblioteca. Antes de entrar, os dois ficaram em silêncio a admirar o céu. Eva percebeu que aprender também começa por observar e fazer perguntas.",questions:[
+["Onde foram observar o céu?",["No jardim","Na biblioteca","Na praia"],0,"O avô levou Eva ao jardim."],
+["O que levaram?",["Uma manta, um caderno e um mapa do céu","Uma bola e uma bicicleta","Uma lanterna e um barco"],0,"O texto enumera a manta, o caderno e o mapa."],
+["Porque esperaram que os olhos se habituassem?",["Para observar melhor no escuro","Para adormecer","Para mudar a cor do céu"],0,"Os olhos precisam de algum tempo para se adaptar à escuridão."],
+["Que direção parece indicar a Estrela Polar?",["Norte","Sul","Este"],0,"A Estrela Polar parece indicar a direção do Norte."],
+["O que são constelações?",["Grupos aparentes de estrelas","Nuvens muito brilhantes","Planetas com anéis"],0,"As constelações são grupos aparentes de estrelas vistos da Terra."],
+["O que desenhou Eva?",["Pontos luminosos","Árvores","Casas"],0,"Eva desenhou alguns pontos luminosos no caderno."],
+["O que explicou o avô sobre a luz das estrelas?",["Demora tempo a chegar até nós","Chega sempre no mesmo segundo","É produzida pelas nuvens"],0,"As estrelas estão muito longe e a luz demora a chegar."],
+["O avô sabia responder a todas as perguntas?",["Sim, a todas","Não, prometeu pesquisar algumas","Não quis ouvir"],1,"O avô não sabia tudo e prometeu procurar informação."],
+["Onde iam procurar mais informação?",["Na biblioteca","No supermercado","No campo de jogos"],0,"O avô prometeu procurar informação na biblioteca."],
+["Qual é a mensagem da história?",["Observar e perguntar ajuda a aprender","Só aprendemos quando sabemos tudo","As perguntas devem ser evitadas"],0,"Eva percebeu que a aprendizagem começa pela observação e pela curiosidade."]]}
+];
+extraStories.forEach(st=>stories.push(st));
+stories.forEach(st=>{
+ while(st.questions.length<10){
+  if(st.questions.length===8)st.questions.push(["Qual é o título da história que acabaste de ler?",[st.title,"A corrida dos planetas","O bolo da escola"],0,"O título identifica a história que acabaste de ler."]);
+  else st.questions.push(["Que tipo de texto acabaste de ler?",["Uma narrativa com personagens e acontecimentos","Uma tabela de horários","Uma lista de compras"],0,"O texto apresenta personagens e acontecimentos organizados numa narrativa."]);
+ }
+});
+function yasminWeekKey(d=new Date()){
+ const x=new Date(d.getFullYear(),d.getMonth(),d.getDate()),day=(x.getDay()+6)%7;x.setDate(x.getDate()-day);
+ return x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0");
+}
+function yasminShuffle(arr,seed){
+ const a=arr.slice();let x=seed>>>0;
+ for(let i=a.length-1;i>0;i--){x=(x*1664525+1013904223)>>>0;const j=x%(i+1);[a[i],a[j]]=[a[j],a[i]]}
+ return a;
+}
+function ensureWeeklySection(){
+ let el=document.getElementById("weeklyTest");
+ if(!el){el=document.createElement("section");el.id="weeklyTest";el.className="hidden";document.querySelector("main").appendChild(el)}
+ return el;
+}
+function page(p){
+ if(p==="weeklyTest"){ensureWeeklySection();oldPage("weeklyTest");renderWeeklyTest();return}
+ if(p==="stories"){oldPage("stories");renderStories();return}
+ oldPage(p);
+}
+function renderStories(){
+ const cards=document.getElementById("storyCards"),reader=document.getElementById("storyReader");
+ reader.classList.add("hidden");cards.classList.remove("hidden");
+ cards.innerHTML="<div class='card' style='grid-column:1/-1'><h3>📚 Biblioteca livre de histórias</h3><p>Podes escolher qualquer história e voltar a lê-la sempre que quiseres. Cada história tem 10 perguntas de compreensão e interpretação.</p><span class='pill'>"+stories.length+" histórias disponíveis</span></div>"+stories.map((st,i)=>{
+ const done=(data.storyHistory||[]).filter(x=>x.index===i).length;
+ const best=(data.storyHistory||[]).filter(x=>x.index===i).reduce((m,x)=>Math.max(m,x.score||0),0);
+ return "<div class='card'><div style='font-size:34px'>"+st.emoji+"</div><h3>"+st.title+"</h3><p>"+st.text.slice(0,125)+"…</p><span class='pill'>10 perguntas</span> <span class='pill'>"+(done?done+" leitura(s) · melhor "+best+"%":"Por ler")+"</span><div class='actions'><button class='primary' onclick='readStory("+i+")'>Ler história →</button></div></div>";
+ }).join("");
+}
+function readStory(i){
+ const st=stories[i];if(!st)return;
+ const el=document.getElementById("storyReader"),cards=document.getElementById("storyCards");
+ cards.classList.add("hidden");el.classList.remove("hidden");
+ let n=0,score=0,answers=[];
+ el.innerHTML="<div class='card'><button onclick='renderStories()'>← Voltar à biblioteca</button><h2>"+st.emoji+" "+st.title+"</h2><div class='pill'>Leitura livre · 10 perguntas</div><div class='storytext'>"+st.text+"</div><h3>Compreensão e interpretação</h3><div id='storyQuiz'></div></div>";
+ function ask(){
+  if(n>=10){
+   const pct=Math.round(score/10*100),entry={date:new Date().toLocaleDateString("pt-PT"),timestamp:Date.now(),index:i,title:st.title,score:pct,correct:score,total:10,answers};
+   data.storyHistory=data.storyHistory||[];data.storyHistory.push(entry);if(!data.storyDone.includes(i))data.storyDone.push(i);
+   data.last="Leitura concluída: "+st.title+" · "+pct+"% de compreensão 📚";save();
+   document.getElementById("storyQuiz").innerHTML="<h2>"+pct+"% de compreensão 🌟</h2><p>"+score+" respostas certas em 10.</p><p>Excelente leitura! Podes voltar a esta história ou escolher outra.</p><button class='primary' onclick='renderStories()'>Voltar à biblioteca</button>";
+   return;
+  }
+  const q=st.questions[n];
+  document.getElementById("storyQuiz").innerHTML="<p class='muted'>Pergunta "+(n+1)+" de 10</p><div class='progress'><span style='width:"+(n*10)+"%'></span></div><div class='question'>"+q[0]+"</div><div class='answers'>"+q[1].map((a,j)=>"<button class='answer' onclick='storyAnswer("+j+")'>"+String.fromCharCode(65+j)+". "+a+"</button>").join("")+"</div>";
+ }
+ window.storyAnswer=function(j){
+  const q=st.questions[n],ok=j===q[2];if(ok)score++;
+  answers.push({question:q[0],given:q[1][j],correct:q[1][q[2]],isCorrect:ok,explanation:q[3]});
+  document.getElementById("storyQuiz").innerHTML="<div class='feedback "+(ok?"good":"bad")+"'>"+(ok?"Muito bem! 🌟":"A resposta correta é: "+q[1][q[2]]+".")+"<br>"+q[3]+"</div><button class='primary' onclick='storyNext()'>Continuar →</button>";
+ };
+ window.storyNext=function(){n++;ask()};ask();
+}
+function missionPick(stage,count){
+ const all=[];
+ curriculum.forEach((c,index)=>(c.questions||[]).forEach(q=>all.push({q,subject:c.subject,title:c.title,index})));
+ const seed=Array.from(dailyMission().date+stage).reduce((a,ch)=>a+ch.charCodeAt(0),0);
+ if(stage==="final"){
+  const subjects=["Português","Matemática","Estudo do Meio","Inglês"],quotas=[8,8,7,7],chosen=[];
+  subjects.forEach((sub,k)=>{
+   const pool=yasminShuffle(all.filter(x=>x.subject===sub),seed+k*71);
+   pool.slice(0,quotas[k]).forEach(x=>{if(!chosen.some(y=>y.q[0]===x.q[0]))chosen.push(x)});
+  });
+  if(chosen.length<count){
+   yasminShuffle(all,seed+999).forEach(x=>{if(chosen.length<count&&!chosen.some(y=>y.q[0]===x.q[0]))chosen.push(x)});
+  }
+  return yasminShuffle(chosen,seed+44).slice(0,count).map(x=>({prompt:x.q[0],options:x.q[1],answer:x.q[2],why:x.q[3],subject:x.subject,title:x.title,index:x.index}));
+ }
+ const m=dailyMission(),subject=stage==="warmup"?null:curriculum[m.lessonIndex].subject;
+ let pool=all.filter(x=>(!subject||x.subject===subject)&&(stage==="warmup"||x.index!==m.lessonIndex));
+ if(pool.length<count)pool=all.filter(x=>!pool.some(y=>y.q[0]===x.q[0]));
+ return yasminShuffle(pool,seed).slice(0,count).map(x=>({prompt:x.q[0],options:x.q[1],answer:x.q[2],why:x.q[3],subject:x.subject,title:x.title,index:x.index}));
+}
+function startLesson(){
+ const m=dailyMission();
+ if(m.stage==="complete"){page("home");return}
+ if(m.stage==="warmup"){beginMissionQuiz("warmup",8);return}
+ if(m.stage==="story"){page("stories");readStory(dailyStoryState().index);return}
+ if(m.stage==="challenge"){beginMissionQuiz("challenge",8);return}
+ if(m.stage==="final"){beginMissionQuiz("final",30);return}
+ if(m.stage==="recovery"||m.stage==="lesson"){data.session={index:m.lessonIndex,items:lessonQuestionSet(m.lessonIndex,10,"practice"),phase:"learn",round:"practice",q:0,chosen:null,score:0,wrong:[],written:false,explained:false};save();page("classroom");renderLesson()}
+}
+function renderWeeklyTest(){
+ const el=ensureWeeklySection(),key=yasminWeekKey(),done=(data.weeklyTestHistory||[]).find(x=>x.weekKey===key);
+ if(data.weeklySession&&data.weeklySession.weekKey===key){renderWeeklyQuestion();return}
+ if(done){
+  el.innerHTML="<div class='lessonbox card'><div class='eyebrow'>Avaliação semanal · "+key+"</div><h2>Teste desta semana concluído ✓</h2><div style='font-size:48px;font-weight:900'>"+done.score+"%</div><p>"+done.correct+" respostas certas em "+done.total+".</p><p>O próximo teste semanal ficará disponível na próxima segunda-feira.</p><button onclick='showWeeklyReport("+JSON.stringify(key)+")'>Ver resultados</button></div>";return;
+ }
+ el.innerHTML="<div class='lessonbox card'><div class='eyebrow'>Avaliação das quatro disciplinas</div><h2>📝 Grande teste semanal</h2><p>Um teste por semana para rever o que aprendeste nas quatro disciplinas.</p><div class='grid' style='grid-template-columns:repeat(2,1fr)'><div class='stat'><strong>10</strong><span>Português</span></div><div class='stat'><strong>10</strong><span>Matemática</span></div><div class='stat'><strong>10</strong><span>Estudo do Meio</span></div><div class='stat'><strong>10</strong><span>Inglês</span></div></div><p class='muted'>São 40 perguntas no total. Faz com calma; no fim recebes a nota e a correção.</p><button class='primary' onclick='startWeeklyTest()'>Começar teste semanal →</button></div>";
+}
+function startWeeklyTest(){
+ const key=yasminWeekKey(),subjects=["Português","Matemática","Estudo do Meio","Inglês"],items=[];
+ const seed=Array.from(key).reduce((a,ch)=>a+ch.charCodeAt(0),0);
+ subjects.forEach((sub,k)=>{
+  const pool=[];curriculum.forEach((c,index)=>{if(c.subject===sub)(c.questions||[]).forEach(q=>{if(!pool.some(x=>x.prompt===q[0]))pool.push({prompt:q[0],options:q[1],answer:q[2],why:q[3],subject:sub,title:c.title,index})})});
+  yasminShuffle(pool,seed+k*137).slice(0,10).forEach(x=>items.push(x));
+ });
+ if(items.length!==40){alert("Ainda não há 10 perguntas diferentes em cada disciplina. O teste semanal ficará disponível quando o banco de perguntas estiver completo.");return}
+ data.weeklySession={weekKey:key,items:yasminShuffle(items,seed+7),q:0,chosen:null,score:0,wrong:[],answers:[],phase:"question"};save();page("weeklyTest");renderWeeklyQuestion();
+}
+function renderWeeklyQuestion(){
+ const s=data.weeklySession,el=ensureWeeklySection();if(!s)return;
+ if(s.phase==="feedback"){
+  const a=s.answers[s.answers.length-1];el.innerHTML="<div class='lessonbox card'><div class='eyebrow'>Teste semanal · "+(s.q+1)+" de 40 · "+a.subject+"</div><h2>"+(a.correct?"Muito bem! 🌟":"Vamos aprender com este erro 💗")+"</h2><div class='feedback "+(a.correct?"good":"bad")+"'>"+(a.correct?"Resposta certa!":"Resposta correta: "+a.answer+".")+"<br>"+a.why+"</div><button class='primary' onclick='weeklyNext()'>Continuar →</button></div>";return;
+ }
+ const q=s.items[s.q];el.innerHTML="<div class='lessonbox card'><div class='eyebrow'>📝 Teste semanal · Pergunta "+(s.q+1)+" de 40</div><div class='pill'>"+q.subject+"</div><div class='progress'><span style='width:"+(s.q/40*100)+"%'></span></div><div class='question'>"+q.prompt+"</div><div class='answers'>"+q.options.map((a,i)=>"<button class='answer "+(s.chosen===i?"selected":"")+"' onclick='weeklyChoose("+i+")'>"+String.fromCharCode(65+i)+". "+a+"</button>").join("")+"</div><div class='actions'><button class='primary' onclick='weeklySubmit()' "+(s.chosen===null?"disabled":"")+">Confirmar resposta</button><button onclick='if(confirm(\"Queres sair? O teste ficará guardado para continuares mais tarde.\"))page(\"home\")'>Sair</button></div></div>";
+}
+function weeklyChoose(i){const s=data.weeklySession;if(s&&s.phase==="question"){s.chosen=i;renderWeeklyQuestion()}}
+function weeklySubmit(){
+ const s=data.weeklySession;if(!s||s.phase!=="question"||s.chosen===null)return;
+ const q=s.items[s.q],ok=s.chosen===q.answer,a={question:q.prompt,given:q.options[s.chosen],answer:q.options[q.answer],why:q.why,correct:ok,subject:q.subject,title:q.title};
+ s.answers.push(a);if(ok)s.score++;else s.wrong.push(a);s.phase="feedback";save();renderWeeklyQuestion();
+}
+function weeklyNext(){
+ const s=data.weeklySession;if(!s)return;s.q++;s.chosen=null;s.phase="question";
+ if(s.q>=s.items.length){finishWeeklyTest();return}save();renderWeeklyQuestion();
+}
+function finishWeeklyTest(){
+ const s=data.weeklySession,pct=Math.round(s.score/s.items.length*100),entry={weekKey:s.weekKey,date:new Date().toLocaleDateString("pt-PT"),timestamp:Date.now(),score:pct,correct:s.score,total:s.items.length,wrong:s.wrong,answers:s.answers};
+ data.weeklyTestHistory=data.weeklyTestHistory||[];data.weeklyTestHistory.push(entry);
+ data.attempts.push({index:-1,title:"Teste semanal — quatro disciplinas",subject:"Todas as disciplinas",score:pct,date:entry.date,timestamp:entry.timestamp,wrong:s.wrong});
+ data.weeklySession=null;data.last="Teste semanal concluído: "+pct+"% 🌟";save();renderWeeklyTest();showWeeklyReport(s.weekKey);
+}
+function showWeeklyReport(key){
+ const entry=(data.weeklyTestHistory||[]).find(x=>x.weekKey===key);if(!entry)return;
+ const el=ensureWeeklySection();el.innerHTML="<div class='lessonbox card'><div class='eyebrow'>Relatório do teste semanal · "+entry.date+"</div><h2>Resultado: "+entry.score+"%</h2><p><b>"+entry.correct+"</b> certas · <b>"+(entry.total-entry.correct)+"</b> erradas · "+entry.total+" perguntas</p><div class='progress'><span style='width:"+entry.score+"%'></span></div><h3>Correção das respostas</h3>"+entry.answers.map((a,i)=>"<div class='feedback "+(a.correct?"good":"bad")+"'><b>"+(i+1)+". "+a.subject+" — "+a.question+"</b><br>A tua resposta: "+a.given+"<br>Resposta correta: "+a.answer+"<br>"+a.why+"</div>").join("")+"<button class='primary' onclick='renderWeeklyTest()'>Voltar</button></div>";
+}
+
 renderHome();
 </script></body></html>
