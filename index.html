@@ -791,5 +791,48 @@ function renderParents(){
  panel.appendChild(box);
 }
 
+
+/* Fase 7 · relatórios por período escolar, apenas com resultados reais */
+function yasminParseSchoolDate(value,timestamp){
+ if(Number.isFinite(Number(timestamp))&&Number(timestamp)>0)return new Date(Number(timestamp));
+ if(!value)return null;
+ const m=String(value).match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+ if(m)return new Date(Number(m[3]),Number(m[2])-1,Number(m[1]));
+ const d=new Date(value);return Number.isNaN(d.getTime())?null:d;
+}
+function yasminSchoolTerm(date){
+ const y=date.getFullYear(),month=date.getMonth();
+ if(month>=8)return {key:y+"-T1",label:"1.º período",start:new Date(y,8,1),end:new Date(y,11,31,23,59,59)};
+ if(month<=2)return {key:(month===0?y-1:y)+"-T2",label:"2.º período",start:new Date(y,0,1),end:new Date(y,2,31,23,59,59)};
+ return {key:(y-1)+"-T3",label:"3.º período",start:new Date(y,3,1),end:new Date(y,7,31,23,59,59)};
+}
+function yasminBuildTermReports(){
+ const subjects=["Português","Matemática","Estudo do Meio","Inglês"],records=[];
+ (data.attempts||[]).forEach(a=>{const d=yasminParseSchoolDate(a.date,a.timestamp);if(d&&Number.isFinite(Number(a.score)))records.push({date:d,subject:a.subject,score:Number(a.score),kind:"Teste individual",title:a.title||"Teste"})});
+ (data.weeklyTestHistory||[]).forEach(w=>{
+  const d=yasminParseSchoolDate(w.date,w.timestamp);if(!d)return;
+  subjects.forEach(subject=>{const aa=(w.answers||[]).filter(a=>a.subject===subject);if(aa.length)records.push({date:d,subject,score:Math.round(aa.filter(a=>a.correct).length/aa.length*100),kind:"Teste semanal",title:"Teste semanal"})});
+ });
+ (data.dailyMissionHistory||[]).forEach(m=>{
+  const d=yasminParseSchoolDate(m.date,m.timestamp);if(d&&Number.isFinite(Number(m.score)))records.push({date:d,subject:m.subject,score:Number(m.score),kind:"Missão diária",title:m.title||"Missão diária"});
+ });
+ const terms=new Map();
+ records.forEach(r=>{const t=yasminSchoolTerm(r.date);if(!terms.has(t.key))terms.set(t.key,{...t,records:[]});terms.get(t.key).records.push(r)});
+ return [...terms.values()].sort((a,b)=>b.start-a.start).map(t=>{
+  const bySubject=subjects.map(subject=>{const list=t.records.filter(r=>r.subject===subject);return {subject,count:list.length,avg:list.length?Math.round(list.reduce((n,x)=>n+x.score,0)/list.length):null,best:list.length?Math.max(...list.map(x=>x.score)):null,last:list.length?list.slice().sort((a,b)=>b.date-a.date)[0]:null}});
+  const total=t.records.length,avg=total?Math.round(t.records.reduce((n,x)=>n+x.score,0)/total):null;
+  return {...t,bySubject,total,avg};
+ });
+}
+function renderSchoolTermReports(){
+ const panel=document.getElementById("parentPanel");if(!panel)return;
+ const terms=yasminBuildTermReports(),box=document.createElement("div");box.className="section card";
+ const safe=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+ box.innerHTML="<div class='eyebrow'>Relatórios escolares · fase 7</div><h3>📅 Avaliação por período</h3><p class='muted'>Os relatórios usam apenas testes, missões e avaliações registados neste computador. Uma disciplina sem avaliações aparece como «Sem registos» — não é atribuída uma nota fictícia.</p>"+(terms.length?terms.map(t=>"<div class='section card' style='padding:15px'><div style='display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap'><b>"+t.label+" · "+t.key.slice(0,4)+"/"+(Number(t.key.slice(0,4))+1)+"</b><span class='pill'>"+t.total+" avaliação(ões) · "+(t.avg===null?"Sem média":t.avg+"%")+"</span></div><div class='tablewrap'><table><thead><tr><th>Disciplina</th><th>Média</th><th>Avaliações</th><th>Último resultado</th></tr></thead><tbody>"+t.bySubject.map(x=>"<tr><td><b>"+safe(x.subject)+"</b></td><td>"+(x.avg===null?"Sem registos":x.avg+"%")+"</td><td>"+x.count+"</td><td>"+(x.last?x.last.score+"% · "+safe(x.last.kind):"—")+"</td></tr>").join("")+"</tbody></table></div><p class='muted' style='font-size:12px'>"+t.bySubject.filter(x=>x.avg!==null&&x.avg<70).map(x=>"A reforçar: "+safe(x.subject)).join(" · ")+(t.bySubject.every(x=>x.avg===null)?"Ainda não existem resultados por disciplina neste período.":"")+"</p></div>").join(""):"<div class='feedback'>Ainda não existem avaliações datadas suficientes para criar um relatório por período. Os próximos resultados serão incluídos automaticamente.</div>");
+ panel.appendChild(box);
+}
+const yasminRenderParentsBeforeTerms=renderParents;
+function renderParents(){yasminRenderParentsBeforeTerms();renderSchoolTermReports()}
+
 renderHome();
 </script></body></html>
