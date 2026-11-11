@@ -616,7 +616,7 @@ renderHome=function(){yasminRenderHomeBeforeAwards();renderAchievementPanel()};
 
 /* Fase 4 · relatório familiar: evolução, prioridades e próximos passos */
 const yasminParentsBeforeInsights=renderParents;
-function renderParents(){
+renderParents = function(){
  yasminParentsBeforeInsights();
  const panel=document.getElementById("parentPanel");
  if(!panel)return;
@@ -648,7 +648,7 @@ function renderParents(){
  "<h4>📈 Últimos testes por matéria</h4>"+trendHtml+"<h4>🗓️ Testes semanais</h4>"+weeklyHtml+
  "<p class='muted' style='font-size:12px'>As percentagens por disciplina são médias dos registos disponíveis; quando existem respostas semanais ou de missões, também são consideradas. Não são estimativas de conhecimentos que ainda não foram avaliados.</p>";
  panel.insertBefore(box,panel.children[1]||null);
-}
+};
 
 
 
@@ -783,13 +783,13 @@ function renderMasteryPanel(){
 const yasminRenderHomeBeforeMastery=renderHome;
 renderHome=function(){yasminRenderHomeBeforeMastery();renderMasteryPanel()};
 const yasminRenderParentsBeforeMastery=renderParents;
-function renderParents(){
+renderParents = function(){
  yasminRenderParentsBeforeMastery();
  const panel=document.getElementById("parentPanel");if(!panel)return;
  const subjects=["Português","Matemática","Estudo do Meio","Inglês"],box=document.createElement("div");box.className="section card";
  box.innerHTML="<h3>🎓 Progressão e domínio · fase 6</h3><p class='muted'>A matéria seguinte só é desbloqueada com 80% ou mais no exame final.</p><div class='tablewrap'><table><thead><tr><th>Disciplina</th><th>Último exame</th><th>Estado</th><th>Progressão</th></tr></thead><tbody>"+subjects.map(subject=>{const x=yasminMasteryState(subject);return "<tr><td><b>"+subject+"</b></td><td>"+(x.score===null?"Sem exame":x.score+"%")+"</td><td>"+x.status+"</td><td>"+(x.score===null?"Por avaliar":x.unlocked?"Desbloqueada":"Reforço antes de avançar")+"</td></tr>"}).join("")+"</tbody></table></div>";
  panel.appendChild(box);
-}
+};
 
 
 /* Fase 7 · relatórios por período escolar, apenas com resultados reais */
@@ -832,7 +832,7 @@ function renderSchoolTermReports(){
  panel.appendChild(box);
 }
 const yasminRenderParentsBeforeTerms=renderParents;
-function renderParents(){yasminRenderParentsBeforeTerms();renderSchoolTermReports()}
+renderParents = function(){yasminRenderParentsBeforeTerms();renderSchoolTermReports()};
 
 
 /* Fase 8 · preparação gradual para o 5.º ano */
@@ -868,9 +868,9 @@ function chooseFifthPrep(i){const s=data.fifthPrepSession;if(!s||s.finished||s.c
 function nextFifthPrep(){const s=data.fifthPrepSession;if(!s||s.chosen===null)return;const q=s.items[s.index];s.answers.push({subject:q.subject,prompt:q.prompt,options:q.options,answer:q.answer,given:s.chosen,correct:s.chosen===q.answer,why:q.why});s.index++;s.chosen=null;if(s.index>=s.items.length){s.finished=true;s.score=Math.round(s.answers.filter(a=>a.correct).length/s.items.length*100);data.fifthPrepHistory=data.fifthPrepHistory||[];data.fifthPrepHistory.push({date:new Date().toLocaleDateString("pt-PT"),timestamp:Date.now(),score:s.score,answers:s.answers})}save();renderFifthPrep()}
 function renderFifthPrepHomeCard(){const home=document.getElementById("home");if(!home)return;let box=document.getElementById("fifthPrepCard");if(!box){box=document.createElement("div");box.id="fifthPrepCard";box.className="section card";const daily=document.getElementById("dailyMissionCard");if(daily&&daily.parentNode===home)daily.insertAdjacentElement("afterend",box);else home.appendChild(box)}const s=data.fifthPrepSession,h=data.fifthPrepHistory||[];box.innerHTML="<div class='eyebrow'>Transição escolar</div><h3>🚀 Preparação para o 5.º ano</h3><p>Desafios de raciocínio e compreensão nas quatro disciplinas, com explicação das respostas. Complementa as aulas do 4.º ano sem as substituir.</p>"+(s&&!s.finished?"<p class='muted'>Desafio por terminar: pergunta "+(s.index+1)+" de "+s.items.length+".</p>":"")+(h.length?"<p class='muted'>Último diagnóstico: "+h[h.length-1].score+"% · "+h[h.length-1].date+"</p>":"<p class='muted'>Ainda não foi realizado nenhum diagnóstico.</p>")+"<div class='actions'><button class='primary' onclick='startFifthPrep()'>"+(s&&!s.finished?"Continuar desafio":"Começar desafio de preparação")+"</button></div>"}
 const yasminRenderHomeBeforeFifth=renderHome;
-function renderHome(){yasminRenderHomeBeforeFifth();renderFifthPrepHomeCard()}
+renderHome = function(){yasminRenderHomeBeforeFifth();renderFifthPrepHomeCard()};
 const yasminRenderParentsBeforeFifth=renderParents;
-function renderParents(){yasminRenderParentsBeforeFifth();const p=document.getElementById("parentPanel");if(!p)return;const h=(data.fifthPrepHistory||[]).slice().reverse(),box=document.createElement("div");box.className="section card";box.innerHTML="<h3>🚀 Preparação para o 5.º ano</h3><p class='muted'>Diagnósticos de treino — não são notas oficiais.</p>"+(h.length?h.map(x=>"<div class='feedback good'><b>"+x.date+" · "+x.score+"%</b><br>"+["Português","Matemática","Estudo do Meio","Inglês"].map(subject=>{const a=(x.answers||[]).filter(y=>y.subject===subject);return subject+": "+(a.length?a.filter(y=>y.correct).length+"/"+a.length+" certas":"sem dados")}).join(" · ")+"</div>").join(""):"<p>Ainda não existem diagnósticos de preparação para o 5.º ano.</p>");p.appendChild(box)}
+renderParents = function(){yasminRenderParentsBeforeFifth();const p=document.getElementById("parentPanel");if(!p)return;const h=(data.fifthPrepHistory||[]).slice().reverse(),box=document.createElement("div");box.className="section card";box.innerHTML="<h3>🚀 Preparação para o 5.º ano</h3><p class='muted'>Diagnósticos de treino — não são notas oficiais.</p>"+(h.length?h.map(x=>"<div class='feedback good'><b>"+x.date+" · "+x.score+"%</b><br>"+["Português","Matemática","Estudo do Meio","Inglês"].map(subject=>{const a=(x.answers||[]).filter(y=>y.subject===subject);return subject+": "+(a.length?a.filter(y=>y.correct).length+"/"+a.length+" certas":"sem dados")}).join(" · ")+"</div>").join(""):"<p>Ainda não existem diagnósticos de preparação para o 5.º ano.</p>");p.appendChild(box)};
 
 renderHome();
 </script></body></html>
