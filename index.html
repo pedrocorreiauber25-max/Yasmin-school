@@ -888,5 +888,15 @@ renderHome=function(){try{return yasminRenderHomeForDiagnostics()}catch(error){y
 const yasminStartLessonForDiagnostics=startLesson;
 startLesson=function(){try{return yasminStartLessonForDiagnostics()}catch(error){yasminShowRuntimeError("Abertura da aula",error);throw error}};
 
+
+/* Biblioteca livre: as histórias não dependem da etapa da missão diária */
+readStory=oldReadStory;
+const yasminRenderHomeBeforeFreeStories=renderHome;
+renderHome=function(){
+ yasminRenderHomeBeforeFreeStories();
+ const storiesNav=document.querySelector("[data-page='stories']");
+ if(storiesNav){storiesNav.disabled=false;storiesNav.removeAttribute("disabled");storiesNav.title="Abrir a biblioteca livre de histórias"}
+};
+
 renderHome();
 </script></body></html>
