@@ -505,7 +505,7 @@ function weeklyNext(){
 function finishWeeklyTest(){
  const s=data.weeklySession,pct=Math.round(s.score/s.items.length*100),entry={weekKey:s.weekKey,date:new Date().toLocaleDateString("pt-PT"),timestamp:Date.now(),score:pct,correct:s.score,total:s.items.length,wrong:s.wrong,answers:s.answers};
  data.weeklyTestHistory=data.weeklyTestHistory||[];data.weeklyTestHistory.push(entry);
- data.attempts.push({index:-1,title:"Teste semanal — quatro disciplinas",subject:"Todas as disciplinas",score:pct,date:entry.date,timestamp:entry.timestamp,wrong:s.wrong});
+ 
  data.weeklySession=null;data.last="Teste semanal concluído: "+pct+"% 🌟";save();renderWeeklyTest();showWeeklyReport(s.weekKey);
 }
 function showWeeklyReport(key){
