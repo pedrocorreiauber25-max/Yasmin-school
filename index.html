@@ -673,7 +673,7 @@ function yasminLearningProfile(){
   return {subject,pos,avg,pending,level,hasData:scores.length>0};
  });
 }
-function getTodayLessonIndex(){
+getTodayLessonIndex = function(){
  const profile=yasminLearningProfile();
  const order=["Português","Matemática","Estudo do Meio","Inglês"];
  const ranked=profile.slice().sort((a,b)=>{
@@ -753,12 +753,12 @@ function finishMissionQuiz(){
  }
 }
 const yasminGetTodayLessonBeforeMastery=getTodayLessonIndex;
-function getTodayLessonIndex(){
+getTodayLessonIndex = function(){
  const subjects=["Português","Matemática","Estudo do Meio","Inglês"];
  const failed=subjects.map(subject=>({subject,exam:yasminLatestExam(subject)})).filter(x=>x.exam&&Number(x.exam.score)<80).sort((a,b)=>Number(a.exam.score)-Number(b.exam.score)||(a.exam.timestamp||0)-(b.exam.timestamp||0));
  if(failed.length&&Number.isInteger(Number(failed[0].exam.index))&&curriculum[Number(failed[0].exam.index)])return Number(failed[0].exam.index);
  return yasminGetTodayLessonBeforeMastery();
-}
+};
 function missionPick(stage,count){
  const m=dailyMission(),current=curriculum[m.lessonIndex],subject=stage==="warmup"?null:current.subject,all=[];
  curriculum.forEach((c,index)=>{if(subject&&c.subject!==subject)return;(c.questions||[]).forEach(q=>all.push({q,subject:c.subject,title:c.title,index}))});
