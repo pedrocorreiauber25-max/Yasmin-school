@@ -590,5 +590,28 @@ lessonQuestionSet=function(index,count,variant){
  return yasminAdaptiveShuffle(selected,seed).map((q,i)=>yasminVaryQuestion(q,seed+i*31));
 };
 
+
+/* Fase 3 · conquistas calculadas a partir do histórico existente */
+function renderAchievementPanel(){
+ const home=document.getElementById("home");if(!home)return;
+ let panel=document.getElementById("achievementPanel");
+ if(!panel){panel=document.createElement("div");panel.id="achievementPanel";panel.className="section card";const target=document.getElementById("subjectCards")?.parentElement;if(target)target.insertAdjacentElement("afterend",panel);else home.appendChild(panel)}
+ const completed=data.completed||[],attempts=data.attempts||[],storiesRead=data.storyHistory||[],weekly=data.weeklyTestHistory||[],missions=data.dailyMissionHistory||[];
+ const subjects=["Português","Matemática","Estudo do Meio","Inglês"];
+ const mastered=subjects.filter(sub=>{const arr=attempts.filter(a=>a.subject===sub);return arr.length>0&&arr.reduce((n,a)=>n+a.score,0)/arr.length>=80}).length;
+ const achievements=[
+  {icon:"🌱",name:"Primeiros passos",detail:"Concluir a primeira aula",value:completed.length>=1,progress:Math.min(completed.length,1),goal:1},
+  {icon:"📚",name:"Leitora curiosa",detail:"Ler cinco histórias",value:storiesRead.length>=5,progress:Math.min(storiesRead.length,5),goal:5},
+  {icon:"📝",name:"Primeiro domingo",detail:"Concluir um teste semanal",value:weekly.length>=1,progress:Math.min(weekly.length,1),goal:1},
+  {icon:"🏅",name:"Cinco missões",detail:"Concluir cinco missões diárias",value:missions.length>=5,progress:Math.min(missions.length,5),goal:5},
+  {icon:"🎓",name:"Quatro disciplinas",detail:"Alcançar média de 80% nas quatro disciplinas",value:mastered===4,progress:mastered,goal:4},
+  {icon:"💪",name:"Persistência",detail:"Realizar dez testes",value:attempts.length>=10,progress:Math.min(attempts.length,10),goal:10}
+ ];
+ const stars=completed.length+storiesRead.length*2+weekly.length*5+missions.length*10;
+ panel.innerHTML="<div class='sectionhead'><div><div class='eyebrow'>O teu percurso de aprendizagem</div><h2>⭐ Estrelas e conquistas</h2></div><span class='pill'>"+achievements.filter(a=>a.value).length+" de "+achievements.length+" medalhas</span></div><div class='statrow'><div class='stat'><strong>"+stars+"</strong><span class='muted'>Estrelas conquistadas</span></div><div class='stat'><strong>"+achievements.filter(a=>a.value).length+"</strong><span class='muted'>Medalhas desbloqueadas</span></div></div><div class='grid' style='grid-template-columns:repeat(auto-fit,minmax(190px,1fr));margin-top:14px'>"+achievements.map(a=>"<div class='card' style='padding:14px;background:"+(a.value?"#f8f3fa":"#fbfafc")+";opacity:"+(a.value?"1":".78")+"'><div style='font-size:27px'>"+a.icon+"</div><b>"+a.name+"</b><p class='muted' style='font-size:13px;margin:6px 0'>"+a.detail+"</p><div class='progress'><span style='width:"+(a.progress/a.goal*100)+"%'></span></div><small class='muted'>"+(a.value?"Conquistada ✓":a.progress+" / "+a.goal+" · A caminho")+"</small></div>").join("")+"</div><p class='muted' style='font-size:12px;margin-top:12px'>As estrelas são calculadas a partir das aulas, histórias, testes e missões já registados. O progresso anterior também conta.</p>";
+}
+const yasminRenderHomeBeforeAwards=renderHome;
+renderHome=function(){yasminRenderHomeBeforeAwards();renderAchievementPanel()};
+
 renderHome();
 </script></body></html>
