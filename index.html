@@ -2,7 +2,7 @@
 <html lang="pt-PT">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#f7dff0">
+<meta name="theme-color" content="#ffffff">
 <link rel="manifest" href="./manifest.json"><link rel="icon" href="./icon.svg" type="image/svg+xml"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Yasmin School">
 <title>Yasmin School</title>
 <style>
@@ -20,6 +20,38 @@ main{max-width:1100px;margin:26px auto;padding:0 18px 50px}.hero{background:line
 input{padding:12px;border:1px solid #e7dce9;border-radius:12px;font:inherit;max-width:100%}
 footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
 @media(max-width:760px){header{align-items:flex-start;flex-direction:column}.hero{grid-template-columns:1fr}.hero-art{display:none}.grid{grid-template-columns:1fr}.statrow{grid-template-columns:repeat(2,1fr)}nav{width:100%}.navbtn{flex:1}}
+
+/* Yasmin School · identidade de escola moderna (fase 1) */
+:root{--pink:#e9b8d1;--pink2:#fff4f8;--lav:#cfc4ed;--lav2:#f5f2fc;--ink:#393449;--muted:#777184;--white:#fff;--good:#36866c;--bad:#c95f77;--gold:#c99c45;--shadow:0 8px 26px rgba(58,45,75,.07)}
+body{background:#f7f7fb;color:var(--ink);font-family:"Trebuchet MS",Arial,sans-serif}
+header{padding:14px clamp(16px,4vw,44px);background:rgba(255,255,255,.96);border-bottom:1px solid #eae7f0;box-shadow:0 3px 16px rgba(45,35,65,.035)}
+.brand{gap:13px}.logo{width:48px;height:48px;border-radius:14px;background:linear-gradient(145deg,#f1d8e6,#ded8f2);box-shadow:none}
+h1{font-size:21px;letter-spacing:-.35px}.tag{font-size:12px;color:#817b8d}
+nav{gap:6px}.navbtn,button{border-radius:11px;padding:10px 14px;background:#f3f1f7;color:#514a60;box-shadow:none}
+.navbtn{font-size:13px}.navbtn.active{background:#e9e3f5;color:#51436f;box-shadow:inset 0 0 0 1px #ddd3ee}
+.primary{background:#e9ddec;color:#493b58}.navbtn:hover,button:hover{filter:brightness(.975);transform:translateY(-1px)}
+main{max-width:1160px;margin:30px auto;padding:0 22px 56px}
+.hero{background:linear-gradient(115deg,#f8eaf1,#efedf8);border:1px solid #eee6f1;border-radius:22px;padding:clamp(22px,4vw,38px);box-shadow:none;grid-template-columns:1.65fr .8fr}
+.hero h2{font-size:clamp(27px,4vw,37px);letter-spacing:-.8px;color:#40384d}
+.hero p{max-width:650px;color:#6e6879;line-height:1.7}
+.hero-art{font-size:76px;filter:saturate(.72)}
+.eyebrow{color:#89728f;letter-spacing:1.1px}
+.grid{gap:16px}.card{border:1px solid #ece9f1;border-radius:17px;padding:20px;box-shadow:0 5px 18px rgba(58,45,75,.045)}
+.card h3{color:#443c51}.card p{color:#777184;line-height:1.65}
+.subject .emoji{border-radius:13px;background:#f3eff9}
+.pill{background:#f3edf7;color:#786184}
+.progress{background:#eeeaf2}.progress span{background:linear-gradient(90deg,#d9b9d0,#bdb2df)}
+.section{margin-top:28px}.sectionhead h2{font-size:21px;letter-spacing:-.3px}
+.lessonbox .card{border-radius:19px;box-shadow:0 7px 24px rgba(58,45,75,.05)}
+.lessonbox h2{color:#40384d}.explain{background:#fbf5f8;border-left-color:#dcb5ce;line-height:1.75}
+.example{background:#f5f2fa;line-height:1.75}
+.answer{background:#fbfafc;border-color:#ebe7f0;border-radius:12px}.answer.selected{border-color:#b7a8d8;background:#f5f1fb}
+.storytext{background:#fff;border:1px solid #eee9f1;border-radius:16px;line-height:1.9}
+.stat{border:1px solid #ece9f1;box-shadow:0 4px 15px rgba(58,45,75,.04)}
+input{border-color:#e5e0eb;background:#fff}
+button:focus-visible,.navbtn:focus-visible,input:focus-visible{outline:3px solid #b9a9dc;outline-offset:2px}
+@media(max-width:760px){header{gap:14px}.hero{grid-template-columns:1fr}.hero-art{display:none}nav{gap:7px}.navbtn{min-width:calc(50% - 5px);flex:1}}
+
 </style></head>
 <body>
 <header><div class="brand"><div class="logo">🌸</div><div><h1>Yasmin School</h1><div class="tag">Aprender, descobrir e crescer</div></div></div>
