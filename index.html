@@ -532,7 +532,7 @@ function startWeeklyTest(){
   yasminShuffle(pool,seed+k*137).slice(0,10).forEach(x=>items.push(x));
  });
  if(items.length!==40){alert("Ainda não há 10 perguntas diferentes em cada disciplina. O teste semanal ficará disponível quando o banco de perguntas estiver completo.");return}
- data.weeklySession={weekKey:key,items:yasminShuffle(items,seed+7),q:0,chosen:null,score:0,wrong:[],answers:[],phase:"question"};save();page("weeklyTest");renderWeeklyQuestion();
+ data.weeklySession={weekKey:key,items:yasminShuffle(items,seed+7).map((q,i)=>{const mixed=yasminVaryQuestion([q.prompt,q.options,q.answer,q.why],seed+71+i*19);return {...q,options:mixed[1],answer:mixed[2]}}),q:0,chosen:null,score:0,wrong:[],answers:[],phase:"question"};save();page("weeklyTest");renderWeeklyQuestion();
 }
 function renderWeeklyQuestion(){
  const s=data.weeklySession,el=ensureWeeklySection();if(!s)return;
@@ -561,6 +561,34 @@ function showWeeklyReport(key){
  const entry=(data.weeklyTestHistory||[]).find(x=>x.weekKey===key);if(!entry)return;
  const el=ensureWeeklySection();el.innerHTML="<div class='lessonbox card'><div class='eyebrow'>Relatório do teste semanal · "+entry.date+"</div><h2>Resultado: "+entry.score+"%</h2><p><b>"+entry.correct+"</b> certas · <b>"+(entry.total-entry.correct)+"</b> erradas · "+entry.total+" perguntas</p><div class='progress'><span style='width:"+entry.score+"%'></span></div><h3>Correção das respostas</h3>"+entry.answers.map((a,i)=>"<div class='feedback "+(a.correct?"good":"bad")+"'><b>"+(i+1)+". "+a.subject+" — "+a.question+"</b><br>A tua resposta: "+a.given+"<br>Resposta correta: "+a.answer+"<br>"+a.why+"</div>").join("")+"<button class='primary' onclick='renderWeeklyTest()'>Voltar</button></div>";
 }
+
+
+/* Fase 2 · prática adaptativa e variação pedagógica */
+function yasminAdaptiveShuffle(list,seed){
+ const a=list.slice();let x=seed>>>0;
+ for(let i=a.length-1;i>0;i--){x=(x*1664525+1013904223)>>>0;const j=x%(i+1);[a[i],a[j]]=[a[j],a[i]]}
+ return a;
+}
+function yasminVaryQuestion(q,seed){
+ const opts=(q[1]||[]).map((label,index)=>({label,index}));
+ const mixed=yasminAdaptiveShuffle(opts,seed);
+ return [q[0],mixed.map(x=>x.label),mixed.findIndex(x=>x.index===q[2]),q[3]];
+}
+const yasminOriginalQuestionSet=lessonQuestionSet;
+lessonQuestionSet=function(index,count,variant){
+ const base=yasminOriginalQuestionSet(index,count,variant);
+ const target=curriculum[index],recent=new Set();
+ (data.answers||[]).slice(-40).forEach(a=>{if(a.index===index||a.title===target.title)recent.add(a.question)});
+ (data.weeklyTestHistory||[]).slice(-2).forEach(test=>(test.answers||[]).forEach(a=>{if(a.title===target.title)recent.add(a.question)}));
+ (data.dailyMissionHistory||[]).slice(-5).forEach(m=>(m.quizResults||[]).forEach(stage=>(stage.answers||[]).forEach(a=>{if(a.title===target.title)recent.add(a.question)})));
+ let selected=base;
+ if(variant==="practice"||variant==="retry"){
+  const fresh=(target.questions||[]).filter(q=>!recent.has(q[0]));
+  if(fresh.length>=count)selected=fresh.slice(0,count);
+ }
+ const seed=Array.from(missionDateKey()+index+variant+((data.attempts||[]).length)).reduce((a,ch)=>a+ch.charCodeAt(0),0);
+ return yasminAdaptiveShuffle(selected,seed).map((q,i)=>yasminVaryQuestion(q,seed+i*31));
+};
 
 renderHome();
 </script></body></html>
