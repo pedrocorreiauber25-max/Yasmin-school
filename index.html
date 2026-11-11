@@ -387,7 +387,7 @@ stories.forEach(st=>{
  }
 });
 function yasminWeekKey(d=new Date()){
- const x=new Date(d.getFullYear(),d.getMonth(),d.getDate()),day=(x.getDay()+6)%7;x.setDate(x.getDate()-day);
+ const x=new Date(d.getFullYear(),d.getMonth(),d.getDate());x.setDate(x.getDate()-x.getDay());
  return x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0");
 }
 function yasminShuffle(arr,seed){
@@ -471,11 +471,16 @@ function renderWeeklyTest(){
  const el=ensureWeeklySection(),key=yasminWeekKey(),done=(data.weeklyTestHistory||[]).find(x=>x.weekKey===key);
  if(data.weeklySession&&data.weeklySession.weekKey===key){renderWeeklyQuestion();return}
  if(done){
-  el.innerHTML="<div class='lessonbox card'><div class='eyebrow'>Avaliação semanal · "+key+"</div><h2>Teste desta semana concluído ✓</h2><div style='font-size:48px;font-weight:900'>"+done.score+"%</div><p>"+done.correct+" respostas certas em "+done.total+".</p><p>O próximo teste semanal ficará disponível na próxima segunda-feira.</p><button onclick='showWeeklyReport("+JSON.stringify(key)+")'>Ver resultados</button></div>";return;
+  el.innerHTML="<div class='lessonbox card'><div class='eyebrow'>Avaliação semanal · "+key+"</div><h2>Teste desta semana concluído ✓</h2><div style='font-size:48px;font-weight:900'>"+done.score+"%</div><p>"+done.correct+" respostas certas em "+done.total+".</p><p>O próximo teste semanal ficará disponível no próximo domingo.</p><button onclick='showWeeklyReport("+JSON.stringify(key)+")'>Ver resultados</button></div>";return;
  }
- el.innerHTML="<div class='lessonbox card'><div class='eyebrow'>Avaliação das quatro disciplinas</div><h2>📝 Grande teste semanal</h2><p>Um teste por semana para rever o que aprendeste nas quatro disciplinas.</p><div class='grid' style='grid-template-columns:repeat(2,1fr)'><div class='stat'><strong>10</strong><span>Português</span></div><div class='stat'><strong>10</strong><span>Matemática</span></div><div class='stat'><strong>10</strong><span>Estudo do Meio</span></div><div class='stat'><strong>10</strong><span>Inglês</span></div></div><p class='muted'>São 40 perguntas no total. Faz com calma; no fim recebes a nota e a correção.</p><button class='primary' onclick='startWeeklyTest()'>Começar teste semanal →</button></div>";
+ if(new Date().getDay()!==0){
+  const next=new Date();next.setDate(next.getDate()+(7-next.getDay()));
+  el.innerHTML="<div class='lessonbox card'><div class='eyebrow'>Avaliação das quatro disciplinas</div><h2>🗓️ O teste semanal é ao domingo</h2><p>O próximo teste fica disponível no domingo, "+next.toLocaleDateString("pt-PT")+".</p><p>São 40 perguntas: 10 de Português, 10 de Matemática, 10 de Estudo do Meio e 10 de Inglês.</p><p class='muted'>Podes continuar a estudar e a ler histórias livremente durante a semana.</p></div>";return;
+ }
+ el.innerHTML="<div class='lessonbox card'><div class='eyebrow'>Avaliação das quatro disciplinas</div><h2>📝 Grande teste semanal</h2><p>Hoje é domingo! Faz o teste semanal para rever o que aprendeste nas quatro disciplinas.</p><div class='grid' style='grid-template-columns:repeat(2,1fr)'><div class='stat'><strong>10</strong><span>Português</span></div><div class='stat'><strong>10</strong><span>Matemática</span></div><div class='stat'><strong>10</strong><span>Estudo do Meio</span></div><div class='stat'><strong>10</strong><span>Inglês</span></div></div><p class='muted'>São 40 perguntas no total. Faz com calma; no fim recebes a nota e a correção.</p><button class='primary' onclick='startWeeklyTest()'>Começar teste semanal →</button></div>";
 }
 function startWeeklyTest(){
+ if(new Date().getDay()!==0){alert("O teste semanal só pode ser iniciado ao domingo. Podes voltar a esta secção nesse dia.");return}
  const key=yasminWeekKey(),subjects=["Português","Matemática","Estudo do Meio","Inglês"],items=[];
  const seed=Array.from(key).reduce((a,ch)=>a+ch.charCodeAt(0),0);
  subjects.forEach((sub,k)=>{
