@@ -296,7 +296,7 @@ function renderMissionQuiz(){const m=dailyMission(),s=m.quiz;if(!s)return;const 
 function missionChoose(i){const q=dailyMission().quiz;if(q&&q.phase==="question"){q.chosen=i;renderMissionQuiz()}}
 function missionSubmit(){const m=dailyMission(),s=m.quiz;if(!s||s.phase!=="question"||s.chosen===null)return;const q=s.items[s.q],ok=s.chosen===q.answer,a={question:q.prompt,given:q.options[s.chosen],answer:q.options[q.answer],why:q.why,correct:ok,subject:q.subject,title:q.title};s.answers.push(a);if(ok){s.score++;clearSmartReview(q.subject,q.prompt)}else{s.wrong.push(a);addSmartReview(q.subject,q.title,q.prompt,q.options,q.answer,q.options[s.chosen],q.why)}s.phase="feedback";save();renderMissionQuiz()}
 function missionNext(){const s=dailyMission().quiz;if(!s)return;s.q++;s.chosen=null;s.phase="question";if(s.q>=s.items.length){finishMissionQuiz();return}save();renderMissionQuiz()}
-function finishMissionQuiz(){const m=dailyMission(),s=m.quiz,score=Math.round(s.score/s.items.length*100);m.quizResults.push({stage:s.stage,score,correct:s.score,total:s.items.length,wrong:s.wrong,answers:s.answers});if(s.stage==="warmup"){m.completedStages.push("warmup");m.stage="lesson";m.quiz=null;save();startLesson();return}if(s.stage==="challenge"){m.completedStages.push("challenge");m.stage="final";m.quiz=null;save();startLesson();return}if(s.stage==="final"){m.completedStages.push("final");m.finalScore=score;m.quiz=null;data.attempts.push({index:m.lessonIndex,title:curriculum[m.lessonIndex].title+" · Exame final",subject:curriculum[m.lessonIndex].subject,score,date:new Date().toLocaleDateString("pt-PT"),timestamp:Date.now(),wrong:s.wrong});if(score>=70){m.stage="complete";m.completedAt=Date.now();data.medals=data.medals||[];data.medals.push({date:m.date,title:"Missão diária concluída",score});data.last="Concluíste a Daily Academy com "+score+"% no exame final! 🏆";data.dailyMissionHistory=data.dailyMissionHistory||[];data.dailyMissionHistory.push({date:m.date,subject:curriculum[m.lessonIndex].subject,title:curriculum[m.lessonIndex].title,score,elapsedMinutes:Math.round((Date.now()-m.startedAt)/60000),quizResults:m.quizResults})}else{m.stage="recovery";m.recoveryScore=score;data.last="Hoje há matéria para consolidar. Vamos rever com calma. 💪"}save();oldPage("classroom");renderMissionEnd(score>=70,score)}}
+function finishMissionQuiz(){const m=dailyMission(),s=m.quiz,score=Math.round(s.score/s.items.length*100);m.quizResults.push({stage:s.stage,score,correct:s.score,total:s.items.length,wrong:s.wrong,answers:s.answers});if(s.stage==="warmup"){m.completedStages.push("warmup");m.stage="lesson";m.quiz=null;save();startLesson();return}if(s.stage==="challenge"){m.completedStages.push("challenge");m.stage="final";m.quiz=null;save();startLesson();return}if(s.stage==="final"){m.completedStages.push("final");m.finalScore=score;m.quiz=null;data.attempts.push({index:m.lessonIndex,title:curriculum[m.lessonIndex].title+" · Exame final",subject:curriculum[m.lessonIndex].subject,score,date:new Date().toLocaleDateString("pt-PT"),timestamp:Date.now(),wrong:s.wrong});if(score>=80){m.stage="complete";m.completedAt=Date.now();data.medals=data.medals||[];data.medals.push({date:m.date,title:"Missão diária concluída",score});data.last="Concluíste a Daily Academy com "+score+"% no exame final! 🏆";data.dailyMissionHistory=data.dailyMissionHistory||[];data.dailyMissionHistory.push({date:m.date,subject:curriculum[m.lessonIndex].subject,title:curriculum[m.lessonIndex].title,score,elapsedMinutes:Math.round((Date.now()-m.startedAt)/60000),quizResults:m.quizResults})}else{m.stage="recovery";m.recoveryScore=score;data.last="Hoje há matéria para consolidar. Vamos rever com calma. 💪"}save();oldPage("classroom");renderMissionEnd(score>=70,score)}}
 function renderMissionEnd(passed,score){const el=document.getElementById("lessonContent");el.innerHTML=passed?"<div style='text-align:center;padding:22px'><div style='font-size:64px'>🏆</div><div class='eyebrow'>Exame final concluído</div><h2>MISSÃO DE HOJE CONCLUÍDA!</h2><div style='font-size:58px;font-weight:900;color:var(--good)'>"+score+"%</div><p>Parabéns, Yasmin! Terminaste todas as etapas da tua escola digital.</p><div class='pill'>🔒 Próxima missão: amanhã</div><p class='muted'>Hoje já não há mais atividades disponíveis. Descansa e volta amanhã para uma nova aventura.</p><button class='primary' onclick=\"page('home')\">Ver o meu certificado 🌟</button></div>":"<div style='text-align:center;padding:22px'><div style='font-size:58px'>🌱</div><h2>Vamos consolidar a aprendizagem</h2><div style='font-size:48px;font-weight:900'>"+score+"%</div><p>Vamos rever algumas ideias antes de terminar a missão. Não é uma falha: é mais uma oportunidade para aprender.</p><button class='primary' onclick='startLesson()'>Rever a aula e tentar novamente</button></div>"}
 const oldStartLesson=startLesson;
 function startLesson(){const m=dailyMission();if(m.stage==="complete"){page("home");return}if(m.stage==="warmup"){beginMissionQuiz("warmup",8);return}if(m.stage==="story"){page("stories");readStory(dailyStoryState().index);return}if(m.stage==="challenge"){beginMissionQuiz("challenge",8);return}if(m.stage==="final"){beginMissionQuiz("final",10);return}if(m.stage==="recovery"||m.stage==="lesson"){data.session={index:m.lessonIndex,items:lessonQuestionSet(m.lessonIndex,10,"practice"),phase:"learn",round:"practice",q:0,chosen:null,score:0,wrong:[],written:false,explained:false};save();page("classroom");renderLesson()}}
@@ -727,6 +727,69 @@ function renderAdaptiveLearningCard(){
 }
 const yasminRenderHomeBeforeAdaptive=renderHome;
 renderHome=function(){yasminRenderHomeBeforeAdaptive();renderAchievementPanel();renderAdaptiveLearningCard()};
+
+
+/* Fase 6 · níveis de dificuldade e domínio antes de avançar */
+function yasminLatestExam(subject){
+ return (data.attempts||[]).filter(a=>a.subject===subject&&String(a.title||"").includes("Exame final")&&Number.isFinite(Number(a.score))).sort((a,b)=>(b.timestamp||0)-(a.timestamp||0))[0]||null;
+}
+function yasminMasteryState(subject){
+ const exam=yasminLatestExam(subject);
+ if(!exam)return {score:null,status:"Ainda por avaliar",level:"Nível inicial",unlocked:false};
+ const score=Number(exam.score);
+ if(score>=90)return {score,status:"Domínio forte",level:"Nível avançado",unlocked:true};
+ if(score>=80)return {score,status:"Matéria consolidada",level:"Nível seguinte desbloqueado",unlocked:true};
+ if(score>=60)return {score,status:"A consolidar",level:"Nível de reforço",unlocked:false};
+ return {score,status:"Precisa de apoio",level:"Reforço orientado",unlocked:false};
+}
+const yasminFinishMissionBeforeMastery=finishMissionQuiz;
+function finishMissionQuiz(){
+ const m=dailyMission(),stage=m.stage,score=stage==="final"&&m.quiz?Math.round(m.quiz.score/m.quiz.items.length*100):null;
+ yasminFinishMissionBeforeMastery();
+ if(stage==="final"&&score!==null){
+  data.masteryHistory=data.masteryHistory||[];
+  data.masteryHistory.push({date:m.date,subject:curriculum[m.lessonIndex].subject,index:m.lessonIndex,title:curriculum[m.lessonIndex].title,score,timestamp:Date.now(),passed:score>=80});
+  save();
+ }
+}
+const yasminGetTodayLessonBeforeMastery=getTodayLessonIndex;
+function getTodayLessonIndex(){
+ const subjects=["Português","Matemática","Estudo do Meio","Inglês"];
+ const failed=subjects.map(subject=>({subject,exam:yasminLatestExam(subject)})).filter(x=>x.exam&&Number(x.exam.score)<80).sort((a,b)=>Number(a.exam.score)-Number(b.exam.score)||(a.exam.timestamp||0)-(b.exam.timestamp||0));
+ if(failed.length&&Number.isInteger(Number(failed[0].exam.index))&&curriculum[Number(failed[0].exam.index)])return Number(failed[0].exam.index);
+ return yasminGetTodayLessonBeforeMastery();
+}
+function missionPick(stage,count){
+ const m=dailyMission(),current=curriculum[m.lessonIndex],subject=stage==="warmup"?null:current.subject,all=[];
+ curriculum.forEach((c,index)=>{if(subject&&c.subject!==subject)return;(c.questions||[]).forEach(q=>all.push({q,subject:c.subject,title:c.title,index}))});
+ const own=all.filter(x=>x.index===m.lessonIndex),other=all.filter(x=>x.index!==m.lessonIndex),queue=data.reviewQueue||[],due=queue.filter(r=>(r.due||0)<=Date.now());
+ const dueItems=all.filter(x=>due.some(r=>r.question===x.q[0])),recent=new Set((data.answers||[]).slice(-24).map(a=>a.question));
+ const fresh=other.filter(x=>!recent.has(x.q[0])&&!dueItems.some(y=>y.q[0]===x.q[0])),rest=other.filter(x=>!dueItems.some(y=>y.q[0]===x.q[0])&&!fresh.some(y=>y.q[0]===x.q[0]));
+ const seed=Array.from(m.date+stage+String((data.attempts||[]).length)).reduce((a,ch)=>a+ch.charCodeAt(0),0);
+ let ordered=yasminAdaptiveShuffle(dueItems,seed).concat(yasminAdaptiveShuffle(own,seed+13),yasminAdaptiveShuffle(fresh,seed+29),yasminAdaptiveShuffle(rest,seed+47));
+ const seen=new Set();ordered=ordered.filter(x=>{if(seen.has(x.q[0]))return false;seen.add(x.q[0]);return true});
+ return ordered.slice(0,count).map(x=>({prompt:x.q[0],options:x.q[1],answer:x.q[2],why:x.q[3],subject:x.subject,title:x.title,index:x.index}));
+}
+function renderMasteryPanel(){
+ const home=document.getElementById("home");if(!home)return;
+ let el=document.getElementById("masteryPanel");
+ if(!el){el=document.createElement("div");el.id="masteryPanel";el.className="section card";const anchor=document.getElementById("adaptiveLearningCard")||document.getElementById("subjectCards")?.parentElement;if(anchor)anchor.insertAdjacentElement("afterend",el);else home.appendChild(el)}
+ const subjects=["Português","Matemática","Estudo do Meio","Inglês"];
+ el.innerHTML="<div class='eyebrow'>Progressão escolar · fase 6</div><h3>🎓 Níveis e domínio das matérias</h3><p class='muted'>Para desbloquear a matéria seguinte, é necessário alcançar pelo menos 80% no exame final. Se ainda não conseguir, a escola mantém a matéria em reforço e volta a trabalhá-la.</p><div class='grid' style='grid-template-columns:repeat(auto-fit,minmax(175px,1fr))'>"+subjects.map(subject=>{
+  const x=yasminMasteryState(subject),color=x.score===null?"#eeeaf2":x.score>=80?"#b9dfd0":"#e9c4cf";
+  return "<div class='card' style='padding:14px'><b>"+subject+"</b><div style='font-size:25px;font-weight:900;margin:7px 0'>"+(x.score===null?"—":x.score+"%")+"</div><div class='progress'><span style='width:"+(x.score===null?0:x.score)+"%;background:"+color+"'></span></div><b style='font-size:13px'>"+x.level+"</b><p class='muted' style='font-size:12px;margin:5px 0 0'>"+x.status+"</p></div>";
+ }).join("")+"</div><p class='muted' style='font-size:12px'>80% ou mais desbloqueia o passo seguinte. O histórico antigo continua guardado.</p>";
+}
+const yasminRenderHomeBeforeMastery=renderHome;
+renderHome=function(){yasminRenderHomeBeforeMastery();renderMasteryPanel()};
+const yasminRenderParentsBeforeMastery=renderParents;
+function renderParents(){
+ yasminRenderParentsBeforeMastery();
+ const panel=document.getElementById("parentPanel");if(!panel)return;
+ const subjects=["Português","Matemática","Estudo do Meio","Inglês"],box=document.createElement("div");box.className="section card";
+ box.innerHTML="<h3>🎓 Progressão e domínio · fase 6</h3><p class='muted'>A matéria seguinte só é desbloqueada com 80% ou mais no exame final.</p><div class='tablewrap'><table><thead><tr><th>Disciplina</th><th>Último exame</th><th>Estado</th><th>Progressão</th></tr></thead><tbody>"+subjects.map(subject=>{const x=yasminMasteryState(subject);return "<tr><td><b>"+subject+"</b></td><td>"+(x.score===null?"Sem exame":x.score+"%")+"</td><td>"+x.status+"</td><td>"+(x.score===null?"Por avaliar":x.unlocked?"Desbloqueada":"Reforço antes de avançar")+"</td></tr>"}).join("")+"</tbody></table></div>";
+ panel.appendChild(box);
+}
 
 renderHome();
 </script></body></html>
