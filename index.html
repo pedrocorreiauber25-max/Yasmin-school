@@ -294,7 +294,7 @@ function missionPick(stage,count){const m=dailyMission(),subject=stage==="warmup
 function beginMissionQuiz(stage,count){const m=dailyMission();m.stage=stage;m.quiz={stage,items:missionPick(stage,count),q:0,chosen:null,score:0,wrong:[],phase:"question",answers:[]};save();page("classroom");renderMissionQuiz()}
 function renderMissionQuiz(){const m=dailyMission(),s=m.quiz;if(!s)return;const el=document.getElementById("lessonContent");if(s.phase==="feedback"){const a=s.answers[s.answers.length-1];el.innerHTML="<div class='eyebrow'>"+missionStageLabel(s.stage)+" · "+(s.q+1)+" de "+s.items.length+"</div><h2>"+(a.correct?"Muito bem! 🌟":"Vamos aprender com este erro 💗")+"</h2><div class='feedback "+(a.correct?"good":"bad")+"'>"+(a.correct?"Resposta certa!":"A resposta correta é: "+a.answer+".")+"<br>"+a.why+"</div><button class='primary' onclick='missionNext()'>Continuar →</button>";return}const q=s.items[s.q];el.innerHTML="<div class='eyebrow'>🎯 "+missionStageLabel(s.stage)+" · Pergunta "+(s.q+1)+" de "+s.items.length+"</div><div class='progress'><span style='width:"+(s.q/s.items.length*100)+"%'></span></div><p class='muted'>"+q.subject+" · "+q.title+"</p><div class='question'>"+q.prompt+"</div><div class='answers'>"+q.options.map((a,i)=>"<button class='answer "+(s.chosen===i?"selected":"")+"' onclick='missionChoose("+i+")'>"+String.fromCharCode(65+i)+". "+a+"</button>").join("")+"</div><div class='actions'><button class='primary' onclick='missionSubmit()' "+(s.chosen===null?"disabled":"")+">Confirmar resposta</button></div>"}
 function missionChoose(i){const q=dailyMission().quiz;if(q&&q.phase==="question"){q.chosen=i;renderMissionQuiz()}}
-function missionSubmit(){const m=dailyMission(),s=m.quiz;if(!s||s.phase!=="question"||s.chosen===null)return;const q=s.items[s.q],ok=s.chosen===q.answer,a={question:q.prompt,given:q.options[s.chosen],answer:q.options[q.answer],why:q.why,correct:ok,subject:q.subject,title:q.title};s.answers.push(a);if(ok)s.score++;else s.wrong.push(a);s.phase="feedback";save();renderMissionQuiz()}
+function missionSubmit(){const m=dailyMission(),s=m.quiz;if(!s||s.phase!=="question"||s.chosen===null)return;const q=s.items[s.q],ok=s.chosen===q.answer,a={question:q.prompt,given:q.options[s.chosen],answer:q.options[q.answer],why:q.why,correct:ok,subject:q.subject,title:q.title};s.answers.push(a);if(ok){s.score++;clearSmartReview(q.subject,q.prompt)}else{s.wrong.push(a);addSmartReview(q.subject,q.title,q.prompt,q.options,q.answer,q.options[s.chosen],q.why)}s.phase="feedback";save();renderMissionQuiz()}
 function missionNext(){const s=dailyMission().quiz;if(!s)return;s.q++;s.chosen=null;s.phase="question";if(s.q>=s.items.length){finishMissionQuiz();return}save();renderMissionQuiz()}
 function finishMissionQuiz(){const m=dailyMission(),s=m.quiz,score=Math.round(s.score/s.items.length*100);m.quizResults.push({stage:s.stage,score,correct:s.score,total:s.items.length,wrong:s.wrong,answers:s.answers});if(s.stage==="warmup"){m.completedStages.push("warmup");m.stage="lesson";m.quiz=null;save();startLesson();return}if(s.stage==="challenge"){m.completedStages.push("challenge");m.stage="final";m.quiz=null;save();startLesson();return}if(s.stage==="final"){m.completedStages.push("final");m.finalScore=score;m.quiz=null;data.attempts.push({index:m.lessonIndex,title:curriculum[m.lessonIndex].title+" · Exame final",subject:curriculum[m.lessonIndex].subject,score,date:new Date().toLocaleDateString("pt-PT"),timestamp:Date.now(),wrong:s.wrong});if(score>=70){m.stage="complete";m.completedAt=Date.now();data.medals=data.medals||[];data.medals.push({date:m.date,title:"Missão diária concluída",score});data.last="Concluíste a Daily Academy com "+score+"% no exame final! 🏆";data.dailyMissionHistory=data.dailyMissionHistory||[];data.dailyMissionHistory.push({date:m.date,subject:curriculum[m.lessonIndex].subject,title:curriculum[m.lessonIndex].title,score,elapsedMinutes:Math.round((Date.now()-m.startedAt)/60000),quizResults:m.quizResults})}else{m.stage="recovery";m.recoveryScore=score;data.last="Hoje há matéria para consolidar. Vamos rever com calma. 💪"}save();oldPage("classroom");renderMissionEnd(score>=70,score)}}
 function renderMissionEnd(passed,score){const el=document.getElementById("lessonContent");el.innerHTML=passed?"<div style='text-align:center;padding:22px'><div style='font-size:64px'>🏆</div><div class='eyebrow'>Exame final concluído</div><h2>MISSÃO DE HOJE CONCLUÍDA!</h2><div style='font-size:58px;font-weight:900;color:var(--good)'>"+score+"%</div><p>Parabéns, Yasmin! Terminaste todas as etapas da tua escola digital.</p><div class='pill'>🔒 Próxima missão: amanhã</div><p class='muted'>Hoje já não há mais atividades disponíveis. Descansa e volta amanhã para uma nova aventura.</p><button class='primary' onclick=\"page('home')\">Ver o meu certificado 🌟</button></div>":"<div style='text-align:center;padding:22px'><div style='font-size:58px'>🌱</div><h2>Vamos consolidar a aprendizagem</h2><div style='font-size:48px;font-weight:900'>"+score+"%</div><p>Vamos rever algumas ideias antes de terminar a missão. Não é uma falha: é mais uma oportunidade para aprender.</p><button class='primary' onclick='startLesson()'>Rever a aula e tentar novamente</button></div>"}
@@ -464,7 +464,7 @@ function readStory(i){
   document.getElementById("storyQuiz").innerHTML="<p class='muted'>Pergunta "+(n+1)+" de 10</p><div class='progress'><span style='width:"+(n*10)+"%'></span></div><div class='question'>"+q[0]+"</div><div class='answers'>"+q[1].map((a,j)=>"<button class='answer' onclick='storyAnswer("+j+")'>"+String.fromCharCode(65+j)+". "+a+"</button>").join("")+"</div>";
  }
  window.storyAnswer=function(j){
-  const q=st.questions[n],ok=j===q[2];if(ok)score++;
+  const q=st.questions[n],ok=j===q[2];if(ok){score++;clearSmartReview("Leitura",st.title+" · "+q[0])}else{addSmartReview("Leitura",st.title,q[0],q[1],q[2],q[1][j],q[3])}
   answers.push({question:q[0],given:q[1][j],correct:q[1][q[2]],isCorrect:ok,explanation:q[3]});
   document.getElementById("storyQuiz").innerHTML="<div class='feedback "+(ok?"good":"bad")+"'>"+(ok?"Muito bem! 🌟":"A resposta correta é: "+q[1][q[2]]+".")+"<br>"+q[3]+"</div><button class='primary' onclick='storyNext()'>Continuar →</button>";
  };
@@ -490,7 +490,19 @@ function missionPick(stage,count){
  if(pool.length<count)pool=all.filter(x=>!pool.some(y=>y.q[0]===x.q[0]));
  return yasminShuffle(pool,seed).slice(0,count).map(x=>({prompt:x.q[0],options:x.q[1],answer:x.q[2],why:x.q[3],subject:x.subject,title:x.title,index:x.index}));
 }
+
+function addSmartReview(subject,title,question,options,correctIndex,given,explanation){
+ data.reviewQueue=data.reviewQueue||[];
+ const existing=data.reviewQueue.find(x=>x.subject===subject&&x.question===question);
+ if(existing){existing.due=Math.min(existing.due||Date.now()+86400000,Date.now()+86400000);existing.mistakes=(existing.mistakes||1)+1;existing.given=given;existing.title=title;existing.options=options;existing.correctIndex=correctIndex;existing.correct=options[correctIndex];existing.explanation=explanation;return}
+ data.reviewQueue.push({subject,title,question,options,correctIndex,correct:options[correctIndex],given,explanation,added:Date.now(),due:Date.now()+86400000,mistakes:1});
+}
+function clearSmartReview(subject,question){
+ data.reviewQueue=(data.reviewQueue||[]).filter(x=>!(x.subject===subject&&x.question===question));
+}
 function startLesson(){
+ const dueReview=(data.reviewQueue||[]).filter(r=>(r.due||0)<=Date.now());
+ if(dueReview.length){startReview();return}
  const m=dailyMission();
  if(m.stage==="complete"){page("home");return}
  if(m.stage==="warmup"){beginMissionQuiz("warmup",8);return}
@@ -533,7 +545,7 @@ function weeklyChoose(i){const s=data.weeklySession;if(s&&s.phase==="question"){
 function weeklySubmit(){
  const s=data.weeklySession;if(!s||s.phase!=="question"||s.chosen===null)return;
  const q=s.items[s.q],ok=s.chosen===q.answer,a={question:q.prompt,given:q.options[s.chosen],answer:q.options[q.answer],why:q.why,correct:ok,subject:q.subject,title:q.title};
- s.answers.push(a);if(ok)s.score++;else s.wrong.push(a);s.phase="feedback";save();renderWeeklyQuestion();
+ s.answers.push(a);if(ok){s.score++;clearSmartReview(q.subject,q.prompt)}else{s.wrong.push(a);addSmartReview(q.subject,q.title,q.prompt,q.options,q.answer,q.options[s.chosen],q.why)}s.phase="feedback";save();renderWeeklyQuestion();
 }
 function weeklyNext(){
  const s=data.weeklySession;if(!s)return;s.q++;s.chosen=null;s.phase="question";
