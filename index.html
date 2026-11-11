@@ -714,6 +714,7 @@ function missionPick(stage,count){
  const rest=all.filter(x=>!priority.some(p=>p.q[0]===x.q[0])&&!fresh.some(p=>p.q[0]===x.q[0]));
  const seed=Array.from(m.date+stage+String((data.attempts||[]).length)).reduce((a,ch)=>a+ch.charCodeAt(0),0);
  const ordered=yasminAdaptiveShuffle(priority,seed).concat(yasminAdaptiveShuffle(fresh,seed+17),yasminAdaptiveShuffle(rest,seed+31));
+ if(ordered.length<count){const used=new Set(ordered.map(x=>x.q[0]));const extra=[];curriculum.forEach((c,index)=>(c.questions||[]).forEach(q=>{if(!used.has(q[0])){used.add(q[0]);extra.push({q,subject:c.subject,title:c.title,index})}}));ordered.push(...yasminAdaptiveShuffle(extra,seed+53))}
  return ordered.slice(0,count).map(x=>({prompt:x.q[0],options:x.q[1],answer:x.q[2],why:x.q[3],subject:x.subject,title:x.title,index:x.index}));
 }
 function renderAdaptiveLearningCard(){
