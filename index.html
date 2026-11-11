@@ -650,5 +650,82 @@ function renderParents(){
  panel.insertBefore(box,panel.children[1]||null);
 }
 
+
+
+/* Fase 5 · adaptação pedagógica baseada no desempenho real */
+function yasminLearningProfile(){
+ const subjects=["Português","Matemática","Estudo do Meio","Inglês"];
+ const attempts=data.attempts||[],weekly=data.weeklyTestHistory||[],missions=data.dailyMissionHistory||[],queue=data.reviewQueue||[];
+ return subjects.map((subject,pos)=>{
+  const scores=[];
+  attempts.filter(a=>a.subject===subject&&Number.isFinite(Number(a.score))).slice(-5).forEach(a=>scores.push(Number(a.score)));
+  weekly.slice(-4).forEach(w=>{
+   const answers=(w.answers||[]).filter(a=>a.subject===subject);
+   if(answers.length)scores.push(answers.filter(a=>a.correct).length/answers.length*100);
+  });
+  missions.slice(-5).forEach(m=>{
+   const answers=(m.quizResults||[]).flatMap(q=>q.answers||[]).filter(a=>a.subject===subject);
+   if(answers.length)scores.push(answers.filter(a=>a.correct).length/answers.length*100);
+  });
+  const avg=scores.length?Math.round(scores.reduce((n,x)=>n+x,0)/scores.length):null;
+  const pending=queue.filter(r=>r.subject===subject).length;
+  const level=avg===null?"a avaliar":avg<60?"precisa de reforço":avg<75?"a consolidar":avg<90?"bom progresso":"domínio forte";
+  return {subject,pos,avg,pending,level,hasData:scores.length>0};
+ });
+}
+function getTodayLessonIndex(){
+ const profile=yasminLearningProfile();
+ const order=["Português","Matemática","Estudo do Meio","Inglês"];
+ const ranked=profile.slice().sort((a,b)=>{
+  const ap=a.avg===null?72:a.avg,bp=b.avg===null?72:b.avg;
+  const as=ap-a.pending*4,bs=bp-b.pending*4;
+  return as-bs||a.pos-b.pos;
+ });
+ const weakest=ranked[0];
+ const scheduled=weekPlan[todayPlanIndex()][1];
+ const priority=weakest&&(weakest.pending>0||(weakest.avg!==null&&weakest.avg<75));
+ const chosen=priority?weakest.subject:scheduled;
+ const candidates=curriculum.map((c,i)=>({c,i})).filter(x=>x.c.subject===chosen);
+ const incomplete=candidates.find(x=>!data.completed.includes(x.i));
+ if(incomplete)return incomplete.i;
+ if(candidates.length){
+  if(priority){
+   const related=(data.reviewQueue||[]).filter(r=>r.subject===chosen).sort((a,b)=>(a.due||0)-(b.due||0));
+   if(related.length){const match=candidates.find(x=>x.c.title===related[0].title);if(match)return match.i}
+  }
+  return candidates[0].i;
+ }
+ const fallback=curriculum.findIndex(c=>c.subject===order[0]);
+ return Math.max(0,fallback);
+}
+function missionPick(stage,count){
+ const m=dailyMission(),subject=stage==="warmup"?null:curriculum[m.lessonIndex].subject;
+ const all=[];
+ curriculum.forEach((c,index)=>{
+  if(subject&&c.subject!==subject)return;
+  if(stage!=="warmup"&&index===m.lessonIndex)return;
+  (c.questions||[]).forEach(q=>all.push({q,subject:c.subject,title:c.title,index}));
+ });
+ const queue=data.reviewQueue||[];
+ const due=queue.filter(r=>(r.due||0)<=Date.now());
+ const priority=all.filter(x=>due.some(r=>r.question===x.q[0]));
+ const recent=new Set((data.answers||[]).slice(-24).map(a=>a.question));
+ const fresh=all.filter(x=>!recent.has(x.q[0])&&!priority.some(p=>p.q[0]===x.q[0]));
+ const rest=all.filter(x=>!priority.some(p=>p.q[0]===x.q[0])&&!fresh.some(p=>p.q[0]===x.q[0]));
+ const seed=Array.from(m.date+stage+String((data.attempts||[]).length)).reduce((a,ch)=>a+ch.charCodeAt(0),0);
+ const ordered=yasminAdaptiveShuffle(priority,seed).concat(yasminAdaptiveShuffle(fresh,seed+17),yasminAdaptiveShuffle(rest,seed+31));
+ return ordered.slice(0,count).map(x=>({prompt:x.q[0],options:x.q[1],answer:x.q[2],why:x.q[3],subject:x.subject,title:x.title,index:x.index}));
+}
+function renderAdaptiveLearningCard(){
+ const home=document.getElementById("home");if(!home)return;
+ let el=document.getElementById("adaptiveLearningCard");
+ if(!el){el=document.createElement("div");el.id="adaptiveLearningCard";el.className="section card";const anchor=document.getElementById("weeklyPlan")?.parentElement;if(anchor)anchor.insertAdjacentElement("afterend",el);else home.appendChild(el)}
+ const profile=yasminLearningProfile();
+ const focus=profile.slice().sort((a,b)=>(a.avg===null?72:a.avg)-(b.avg===null?72:b.avg)-((a.pending-b.pending)*4))[0];
+ el.innerHTML="<div class='eyebrow'>Acompanhamento inteligente · fase 5</div><h3>🧠 A escola adapta-se a ti</h3><p class='muted'>A próxima aula dá prioridade às matérias que precisam de mais prática. As perguntas que já erraste podem voltar a aparecer para te ajudar a aprender.</p><div class='grid' style='grid-template-columns:repeat(auto-fit,minmax(150px,1fr))'>"+profile.map(x=>"<div class='card' style='padding:13px'><b>"+x.subject+"</b><div style='font-size:22px;font-weight:900;margin:6px 0'>"+(x.avg===null?"—":x.avg+"%")+"</div><small class='muted'>"+x.level+" · "+x.pending+" revisão(ões)</small></div>").join("")+"</div>"+(focus?"<p class='pill'>Próxima prioridade: "+focus.subject+"</p>":"");
+}
+const yasminRenderHomeBeforeAdaptive=renderHome;
+renderHome=function(){yasminRenderHomeBeforeAdaptive();renderAchievementPanel();renderAdaptiveLearningCard()};
+
 renderHome();
 </script></body></html>
