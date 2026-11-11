@@ -613,5 +613,42 @@ function renderAchievementPanel(){
 const yasminRenderHomeBeforeAwards=renderHome;
 renderHome=function(){yasminRenderHomeBeforeAwards();renderAchievementPanel()};
 
+
+/* Fase 4 · relatório familiar: evolução, prioridades e próximos passos */
+const yasminParentsBeforeInsights=renderParents;
+function renderParents(){
+ yasminParentsBeforeInsights();
+ const panel=document.getElementById("parentPanel");
+ if(!panel)return;
+ const subjects=["Português","Matemática","Estudo do Meio","Inglês"];
+ const attempts=data.attempts||[],weekly=data.weeklyTestHistory||[],missions=data.dailyMissionHistory||[],queue=data.reviewQueue||[];
+ const safe=v=>String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;");
+ const rows=subjects.map(subject=>{
+  const a=attempts.filter(x=>x.subject===subject&&Number.isFinite(Number(x.score)));
+  const w=weekly.flatMap(x=>(x.answers||[]).filter(y=>y.subject===subject));
+  const m=missions.flatMap(x=>(x.quizResults||[]).flatMap(y=>(y.answers||[]).filter(z=>z.subject===subject)));
+  const scores=a.map(x=>Number(x.score));
+  if(w.length)scores.push(Math.round(w.filter(x=>x.correct).length/w.length*100));
+  if(m.length)scores.push(Math.round(m.filter(x=>x.correct).length/m.length*100));
+  const avg=scores.length?Math.round(scores.reduce((n,x)=>n+x,0)/scores.length):null;
+  const pending=queue.filter(x=>x.subject===subject).length;
+  const label=avg===null?"Ainda sem dados":avg>=85?"Bom domínio":avg>=70?"A consolidar":"Prioridade de apoio";
+  return {subject,avg,pending,label,count:scores.length};
+ });
+ const ranked=rows.filter(x=>x.avg!==null).sort((a,b)=>a.avg-b.avg);
+ const focus=ranked.filter(x=>x.avg<80||x.pending>0);
+ const trend=attempts.filter(x=>Number.isFinite(Number(x.score))).slice(-8);
+ const weeklyTrend=weekly.slice(-6);
+ const trendHtml=trend.length?trend.map((x,i)=>"<div style='display:flex;align-items:center;gap:10px;margin:9px 0'><span style='width:115px;font-size:13px' class='muted'>"+safe(x.date||("Teste "+(i+1)))+"</span><div class='progress' style='flex:1;margin:0'><span style='width:"+Math.max(0,Math.min(100,Number(x.score)||0))+"%'></span></div><b style='width:42px;text-align:right'>"+safe(x.score)+"%</b></div>").join(""):"<p class='muted'>A evolução aparecerá aqui depois dos próximos testes.</p>";
+ const weeklyHtml=weeklyTrend.length?weeklyTrend.map(x=>"<div style='display:flex;align-items:center;gap:10px;margin:9px 0'><span style='width:115px;font-size:13px' class='muted'>"+safe(x.date||x.weekKey)+"</span><div class='progress' style='flex:1;margin:0'><span style='width:"+Math.max(0,Math.min(100,Number(x.score)||0))+"%'></span></div><b style='width:42px;text-align:right'>"+safe(x.score)+"%</b></div>").join(""):"<p class='muted'>Ainda não existem testes semanais concluídos.</p>";
+ const box=document.createElement("div");box.className="section card";
+ box.innerHTML="<div class='eyebrow'>Relatório pedagógico · fase 4</div><h3>📊 Evolução e prioridades</h3><p class='muted'>Este resumo combina testes por matéria, respostas dos testes semanais e resultados das missões. Só apresenta médias quando existem registos.</p><div class='grid' style='grid-template-columns:repeat(auto-fit,minmax(190px,1fr))'>"+
+ rows.map(x=>"<div class='card' style='padding:15px'><b>"+safe(x.subject)+"</b><div style='font-size:27px;font-weight:900;margin:8px 0'>"+(x.avg===null?"—":x.avg+"%")+"</div><div class='progress'><span style='width:"+(x.avg===null?0:x.avg)+"%'></span></div><small class='muted'>"+safe(x.label)+" · "+x.count+" registo(s)</small><p class='muted' style='font-size:12px;margin:7px 0 0'>"+x.pending+" pergunta(s) na revisão</p></div>").join("")+"</div>"+
+ "<h4>🎯 O que merece atenção</h4>"+(focus.length?focus.map(x=>"<div class='feedback "+(x.avg!==null&&x.avg<70?"bad":"") +"'><b>"+safe(x.subject)+"</b> — "+(x.avg===null?"Sem média disponível":x.avg+"% de média")+". "+(x.pending?x.pending+" pergunta(s) pendente(s) na revisão.":"")+(x.avg!==null&&x.avg<70?" Recomendação: retomar a explicação e fazer exercícios guiados.":x.avg!==null&&x.avg<80?" Recomendação: praticar mais alguns exercícios antes de avançar.":" Recomendação: concluir as revisões pendentes.")+"</div>").join(""):"<p class='feedback good'>Não há disciplinas com média abaixo de 80% nem perguntas pendentes. Continua a acompanhar os próximos resultados.</p>")+
+ "<h4>📈 Últimos testes por matéria</h4>"+trendHtml+"<h4>🗓️ Testes semanais</h4>"+weeklyHtml+
+ "<p class='muted' style='font-size:12px'>As percentagens por disciplina são médias dos registos disponíveis; quando existem respostas semanais ou de missões, também são consideradas. Não são estimativas de conhecimentos que ainda não foram avaliados.</p>";
+ panel.insertBefore(box,panel.children[1]||null);
+}
+
 renderHome();
 </script></body></html>
