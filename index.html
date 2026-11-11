@@ -314,6 +314,6 @@ function lessonQuestionSet(index,count,variant){
 }
 function currentLessonQuestions(){return data.session.items||curriculum[data.session.index].questions}
 
-if("serviceWorker" in navigator && location.protocol!=="file:"){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(err=>console.warn("Offline indisponível:",err)))}
+if("serviceWorker" in navigator && location.protocol!=="file:"){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}))}
 renderHome();
 </script></body></html>
