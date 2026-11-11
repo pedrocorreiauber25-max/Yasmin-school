@@ -949,4 +949,26 @@ if(storiesNav){
   try{page("stories")}catch(error){console.error("Erro ao abrir a biblioteca:",error);alert("A biblioteca encontrou um erro ao abrir. Atualiza a página e tenta novamente.")}
  };
 }
+/* Navegação da biblioteca por delegação no documento: independente de onclick/page */
+document.addEventListener("click",function(event){
+ const target=event.target;
+ const button=target&&target.closest?target.closest(".navbtn[data-page='stories']"):null;
+ if(!button)return;
+ event.preventDefault();
+ event.stopPropagation();
+ if(event.stopImmediatePropagation)event.stopImmediatePropagation();
+ try{
+  button.disabled=false;
+  document.querySelectorAll("main>section").forEach(section=>section.classList.add("hidden"));
+  const section=document.getElementById("stories");
+  if(!section)throw new Error("A secção da biblioteca não existe.");
+  section.classList.remove("hidden");
+  document.querySelectorAll(".navbtn").forEach(nav=>nav.classList.toggle("active",nav===button));
+  renderStories();
+ }catch(error){
+  const section=document.getElementById("stories");
+  if(section){section.classList.remove("hidden");section.innerHTML="<div class='card'><h2>Não foi possível abrir a biblioteca</h2><p>"+String(error&&error.message||error).replace(/[&<>]/g," ")+"</p><p>Envia esta mensagem aos teus pais.</p></div>"}
+  console.error("Falha ao abrir Histórias:",error);
+ }
+},true);
 </script></body></html>
