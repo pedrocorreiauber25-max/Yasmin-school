@@ -937,5 +937,16 @@ renderHome=function(){
  if(nav){nav.disabled=false;nav.removeAttribute("disabled");nav.title="Abrir a biblioteca livre de histórias"}
 };
 
-renderHome();
+/* Arranque protegido: a biblioteca não depende do estado da missão nem do render inicial */
+try{renderHome()}catch(error){console.error("Erro ao preparar o início:",error)}
+const storiesNav=document.querySelector("[data-page='stories']");
+if(storiesNav){
+ storiesNav.disabled=false;
+ storiesNav.removeAttribute("disabled");
+ storiesNav.title="Abrir a biblioteca livre de histórias";
+ storiesNav.onclick=function(event){
+  event.preventDefault();
+  try{page("stories")}catch(error){console.error("Erro ao abrir a biblioteca:",error);alert("A biblioteca encontrou um erro ao abrir. Atualiza a página e tenta novamente.")}
+ };
+}
 </script></body></html>
