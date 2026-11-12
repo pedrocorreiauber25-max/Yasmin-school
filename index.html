@@ -181,7 +181,7 @@ function dailyStoryState(){
  return data.storyDaily;
 }
 
-const KEY="yasminSchool_v1";let data=JSON.parse(localStorage.getItem(KEY)||"null")||{index:0,completed:[],attempts:[],answers:[],storyDone:[],pin:"2468",last:"Ainda não há conquistas.",session:null};data.answers=data.answers||[];data.completed=data.completed||[];data.attempts=data.attempts||[];data.storyDone=data.storyDone||[];data.storyDaily=data.storyDaily||null;data.storyHistory=data.storyHistory||[];data.writing=data.writing||[];data.digitalWork=data.digitalWork||[];data.reviewQueue=data.reviewQueue||[];
+const KEY="yasminSchool_v1";let data=JSON.parse(localStorage.getItem(KEY)||"null")||{index:0,completed:[],attempts:[],answers:[],storyDone:[],pin:"2468",last:"Ainda não há conquistas.",session:null};data.answers=data.answers||[];data.completed=data.completed||[];data.attempts=data.attempts||[];data.storyDone=data.storyDone||[];data.storyOpened=data.storyOpened||[];data.storyDaily=data.storyDaily||null;data.storyHistory=data.storyHistory||[];data.writing=data.writing||[];data.digitalWork=data.digitalWork||[];data.reviewQueue=data.reviewQueue||[];
 function save(){localStorage.setItem(KEY,JSON.stringify(data))}
 function pageBase(p){document.querySelectorAll("main>section").forEach(s=>s.classList.add("hidden"));document.getElementById(p).classList.remove("hidden");document.querySelectorAll(".navbtn").forEach(b=>b.classList.toggle("active",b.dataset.page===p));if(p==="home")renderHome();if(p==="stories")renderStories()}
 document.querySelectorAll(".navbtn").forEach(b=>{if(b.dataset.page!=="stories")b.onclick=()=>page(b.dataset.page)});
@@ -240,10 +240,17 @@ function dailyStoryState(){
  return data.storyDaily;
 }
 function renderStories(){
- const daily=dailyStoryState(),s=stories[daily.index];
- document.getElementById("storyReader").classList.add("hidden");
- const cards=document.getElementById("storyCards");cards.classList.remove("hidden");
- cards.innerHTML=`<div class="card"><div style="font-size:35px">${s.emoji}</div><span class="pill">📖 Texto único de hoje</span><h3>${s.title}</h3><p>Hoje existe apenas este texto de leitura. Uma nova história ficará disponível amanhã.</p><span class="pill">${daily.completed?"Concluída hoje ✓":daily.opened?"Já começaste — podes continuar":"Leitura + compreensão"}</span><div class="actions"><button class="primary" onclick="readStory(${daily.index})">${daily.completed?"Rever o texto de hoje":"Abrir o texto de hoje"} →</button></div></div><div class="card"><h3>🔒 Biblioteca protegida</h3><p>As restantes histórias estão bloqueadas durante o dia de hoje. Volta amanhã para descobrires um novo texto.</p></div>`;
+ const cards=document.getElementById("storyCards"),reader=document.getElementById("storyReader");
+ reader.classList.add("hidden");cards.classList.remove("hidden");
+ cards.innerHTML="<div class='card' style='grid-column:1/-1'><h3>📚 Biblioteca livre de histórias</h3><p>As histórias ficam guardadas na biblioteca. As etiquetas mostram o que já leste e o que ainda falta descobrir.</p><span class='pill'>"+stories.length+" histórias disponíveis</span></div>"+stories.map((st,i)=>{
+  const done=(data.storyHistory||[]).filter(x=>Number(x.index)===i).length;
+  const best=(data.storyHistory||[]).filter(x=>Number(x.index)===i).reduce((m,x)=>Math.max(m,x.score||0),0);
+  const read=(data.storyDone||[]).some(x=>Number(x)===i)||done>0;
+  const opened=(data.storyOpened||[]).some(x=>Number(x)===i);
+  const status=read?"✅ Lida":opened?"📖 Em leitura":"🟣 Por ler";
+  const count=done?" · "+done+" leitura(s) · melhor "+best+"%":"";
+  return "<div class='card'><div style='font-size:34px'>"+st.emoji+"</div><h3>"+st.title+"</h3><span class='pill'>"+status+"</span><p>"+st.text.slice(0,125)+"…</p><span class='pill'>"+st.questions.length+" perguntas"+count+"</span><div class='actions'><button class='primary' onclick='readStory("+i+")'>"+(read?"Reler história →":opened?"Continuar leitura →":"Ler história →")+"</button></div></div>";
+ }).join("");
 }
 function readStory(i){
  const daily=dailyStoryState();
@@ -891,6 +898,8 @@ readStory = function(i){
  if(!st){alert("Não foi possível encontrar esta história. Volta à biblioteca e escolhe outra.");return}
  const el=document.getElementById("storyReader"),cards=document.getElementById("storyCards");
  if(!el||!cards){alert("A biblioteca ainda está a carregar. Tenta novamente.");return}
+ data.storyOpened=data.storyOpened||[];
+ if(!(data.storyOpened||[]).some(x=>Number(x)===Number(i))){data.storyOpened.push(Number(i));save()}
  cards.classList.add("hidden");el.classList.remove("hidden");
  let n=0,score=0,answers=[];
  el.innerHTML="<div class='card'><button type='button' onclick='renderStories()'>← Voltar à biblioteca</button><h2>"+st.emoji+" "+st.title+"</h2><div class='pill'>Leitura livre · "+st.questions.length+" perguntas</div><div class='storytext'>"+st.text+"</div><h3>Compreensão e interpretação</h3><div id='storyQuiz'></div></div>";
