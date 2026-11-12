@@ -937,6 +937,11 @@ renderHome=function(){
  if(nav){nav.disabled=false;nav.removeAttribute("disabled");nav.title="Abrir a biblioteca livre de histórias"}
 };
 
+/* Evita reentrada recursiva no render do início; mantém intactos os dados locais. */
+const yasminRenderHomeBeforeGuard=renderHome;
+let yasminHomeRenderActive=false;
+renderHome=function(){if(yasminHomeRenderActive)return;yasminHomeRenderActive=true;try{return yasminRenderHomeBeforeGuard()}finally{yasminHomeRenderActive=false}};
+
 /* Arranque protegido: a biblioteca não depende do estado da missão nem do render inicial */
 try{renderHome()}catch(error){console.error("Erro ao preparar o início:",error)}
 const storiesNav=document.querySelector("[data-page='stories']");
